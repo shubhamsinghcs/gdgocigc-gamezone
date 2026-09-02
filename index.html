@@ -837,7 +837,7 @@
     // --- E. REALTIME MULTI-TAB & FIREBASE SYNC ENGINE ---
     function initRealtimeEngine() {
       try {
-        // 1. BroadcastChannel for fast multi-tab sync
+        // 1. BroadcastChannel for instant multi-tab sync
         if (typeof BroadcastChannel !== 'undefined') {
           fallbackBroadcastChannel = new BroadcastChannel('gdgoc_game_zone_channel');
           fallbackBroadcastChannel.onmessage = (event) => {
@@ -847,11 +847,26 @@
           };
         }
 
-        // 2. Firebase Database init (if available)
+        // 2. Storage event listener for cross-tab sync resilience
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'gdgoc_active_room' && e.newValue) {
+            try {
+              handleRoomUpdate(JSON.parse(e.newValue));
+            } catch (err) {}
+          }
+        });
+
+        // 3. Firebase Database init (if available)
         if (window.firebase && firebase.database) {
           try {
             const firebaseConfig = {
-              databaseURL: "https://gdgoc-igc-speed-trivia-default-rtdb.firebaseio.com"
+              apiKey: "AIzaSyAyI12myuSpTKxQcKUqwA99uWvI1VR2ODs",
+              authDomain: "gdgocigc-gamezone.firebaseapp.com",
+              databaseURL: "https://gdgocigc-gamezone-default-rtdb.firebaseio.com",
+              projectId: "gdgocigc-gamezone",
+              storageBucket: "gdgocigc-gamezone.firebasestorage.app",
+              messagingSenderId: "483943536670",
+              appId: "1:483943536670:web:00d84096fe02088b88360f"
             };
             if (!firebase.apps.length) {
               firebase.initializeApp(firebaseConfig);
@@ -867,7 +882,7 @@
           }
         }
 
-        // 3. Check local storage for initial room state
+        // 4. Check local storage for initial room state
         const savedRoom = localStorage.getItem('gdgoc_active_room');
         if (savedRoom) {
           try {
@@ -1326,9 +1341,13 @@
         }
       }
 
-      // Automatic Shared Leaderboard transition for both participants and host
+      // Automatic Leaderboard transition:
+      // Host broadcasts the shared LEADERBOARD state to all connected participants.
+      // Participants switch locally after brief feedback window if host broadcast is in transit.
       setTimeout(() => {
-        broadcastRoomUpdate({ status: 'LEADERBOARD' });
+        if (appState.isHost) {
+          broadcastRoomUpdate({ status: 'LEADERBOARD' });
+        }
         showLeaderboardScreen();
       }, 1200);
     }
@@ -1781,6 +1800,11 @@
           if (appState.player.id && appState.player.name) {
             document.getElementById('reg-name').value = appState.player.name;
             document.getElementById('reg-code').value = ACCESS_CODE_VALID;
+            document.getElementById('lobby-player-name').textContent = appState.player.name;
+            document.getElementById('lobby-player-branch').textContent = appState.player.branch || 'CSE';
+            if (!appState.isHost && appState.room.status === 'LOBBY') {
+              switchView('view-lobby');
+            }
           }
         }
       } catch (e) {}

@@ -12,13 +12,13 @@ import {
 import { GameState, Player, FastestWinner, QuestionWinnerEntry, FirebaseConfig } from '../types';
 
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
-  apiKey: "AIzaSy_TECH_CLASH_DEMO_KEY_PLACEHOLDER",
-  authDomain: "tech-clash-live.firebaseapp.com",
-  databaseURL: "https://tech-clash-live-default-rtdb.firebaseio.com",
-  projectId: "tech-clash-live",
-  storageBucket: "tech-clash-live.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456"
+  apiKey: "AIzaSyAyI12myuSpTKxQcKUqwA99uWvI1VR2ODs",
+  authDomain: "gdgocigc-gamezone.firebaseapp.com",
+  databaseURL: "https://gdgocigc-gamezone-default-rtdb.firebaseio.com",
+  projectId: "gdgocigc-gamezone",
+  storageBucket: "gdgocigc-gamezone.firebasestorage.app",
+  messagingSenderId: "483943536670",
+  appId: "1:483943536670:web:00d84096fe02088b88360f"
 };
 
 const CONFIG_STORAGE_KEY = 'fastest_finger_firebase_config';
@@ -59,6 +59,9 @@ export function isUsingCustomFirebaseConfig(): boolean {
 export function initFirebase(customConfig?: FirebaseConfig): { app: FirebaseApp | null; db: Database | null } {
   try {
     const cfg = customConfig || getSavedFirebaseConfig();
+    if (cfg.projectId && !cfg.databaseURL) {
+      cfg.databaseURL = `https://${cfg.projectId}-default-rtdb.firebaseio.com`;
+    }
     const existing = getApps();
     if (existing.length > 0) {
       firebaseApp = existing[0];
@@ -68,7 +71,7 @@ export function initFirebase(customConfig?: FirebaseConfig): { app: FirebaseApp 
     
     // Only attempt RTDB if databaseURL is valid
     if (cfg.databaseURL && !cfg.databaseURL.includes('PLACEHOLDER')) {
-      rtdb = getDatabase(firebaseApp);
+      rtdb = getDatabase(firebaseApp, cfg.databaseURL);
       isFirebaseConnected = true;
     }
   } catch (err) {
