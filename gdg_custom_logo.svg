@@ -1,0 +1,21 @@
+<svg viewBox="0 0 200 200" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- LEFT CHEVRON < -->
+  <!-- Blue bottom arm -->
+  <g transform="translate(64, 108) rotate(-45)">
+    <rect x="-16" y="-36" width="32" height="72" rx="16" fill="#4285F4" stroke="#111827" stroke-width="5" stroke-linejoin="round" />
+  </g>
+  <!-- Red top arm -->
+  <g transform="translate(76, 80) rotate(45)">
+    <rect x="-16" y="-36" width="32" height="72" rx="16" fill="#EA4335" stroke="#111827" stroke-width="5" stroke-linejoin="round" />
+  </g>
+
+  <!-- RIGHT CHEVRON > -->
+  <!-- Yellow bottom arm -->
+  <g transform="translate(124, 108) rotate(45)">
+    <rect x="-16" y="-36" width="32" height="72" rx="16" fill="#FBBC05" stroke="#111827" stroke-width="5" stroke-linejoin="round" />
+  </g>
+  <!-- Green top arm -->
+  <g transform="translate(136, 80) rotate(-45)">
+    <rect x="-16" y="-36" width="32" height="72" rx="16" fill="#34A853" stroke="#111827" stroke-width="5" stroke-linejoin="round" />
+  </g>
+</svg>

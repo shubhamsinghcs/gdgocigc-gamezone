@@ -1,0 +1,21 @@
+<svg viewBox="0 0 200 200" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left Bracket < -->
+  <!-- Blue Capsule (Bottom Arm) -->
+  <g transform="translate(66, 112) rotate(-45)">
+    <rect x="-16" y="-34" width="32" height="68" rx="16" fill="#4285F4" stroke="#000000" stroke-width="5.5" stroke-linejoin="round" />
+  </g>
+  <!-- Red Capsule (Top Arm) -->
+  <g transform="translate(78, 82) rotate(45)">
+    <rect x="-16" y="-34" width="32" height="68" rx="16" fill="#EA4335" stroke="#000000" stroke-width="5.5" stroke-linejoin="round" />
+  </g>
+
+  <!-- Right Bracket > -->
+  <!-- Yellow Capsule (Bottom Arm) -->
+  <g transform="translate(122, 118) rotate(45)">
+    <rect x="-16" y="-34" width="32" height="68" rx="16" fill="#FBBC05" stroke="#000000" stroke-width="5.5" stroke-linejoin="round" />
+  </g>
+  <!-- Green Capsule (Top Arm) -->
+  <g transform="translate(134, 88) rotate(-45)">
+    <rect x="-16" y="-34" width="32" height="68" rx="16" fill="#34A853" stroke="#000000" stroke-width="5.5" stroke-linejoin="round" />
+  </g>
+</svg>

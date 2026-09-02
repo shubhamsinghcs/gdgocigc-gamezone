@@ -1,0 +1,6 @@
+{
+  "name": "GDGoC IGC Game Zone",
+  "description": "Official GDGoC IGC Game Zone - Real-time mobile-first tech trivia application featuring 10-second speed rounds, fastest finger bonuses, live synchronized leaderboard, and host controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
