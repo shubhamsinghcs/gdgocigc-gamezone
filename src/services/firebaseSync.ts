@@ -9,7 +9,7 @@ import {
   Database,
   Unsubscribe
 } from 'firebase/database';
-import { GameState, Player, FastestWinner, QuestionWinnerEntry, FirebaseConfig } from '../types';
+import { GameState, Player, FastestWinner, QuestionWinnerEntry, FirebaseConfig, Question } from '../types';
 
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
   apiKey: "AIzaSyAyI12myuSpTKxQcKUqwA99uWvI1VR2ODs",
@@ -18,7 +18,8 @@ export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
   projectId: "gdgocigc-gamezone",
   storageBucket: "gdgocigc-gamezone.firebasestorage.app",
   messagingSenderId: "483943536670",
-  appId: "1:483943536670:web:00d84096fe02088b88360f"
+  appId: "1:483943536670:web:00d84096fe02088b88360f",
+  measurementId: "G-8VE8CPW7PV"
 };
 
 const CONFIG_STORAGE_KEY = 'fastest_finger_firebase_config';
@@ -209,7 +210,8 @@ export function listenToGameState(callback: (state: GameState) => void): Unsubsc
             timerDurationSec: val.timerDurationSec ?? 15,
             showAnswer: val.showAnswer ?? false,
             fastestWinner: val.fastestWinner ?? null,
-            questionWinners: val.questionWinners ?? {}
+            questionWinners: val.questionWinners ?? {},
+            questions: val.questions ?? undefined
           };
           callback({ ...localGameState });
         }
@@ -582,3 +584,26 @@ export async function seedDemoClashPlayers(): Promise<void> {
     }
   }
 }
+
+/**
+ * Update custom questions pool
+ */
+export async function updateQuestions(questions: Question[]): Promise<void> {
+  localGameState = {
+    ...localGameState,
+    questions
+  };
+  notifyGameSubscribers();
+
+  if (rtdb) {
+    try {
+      const gameRef = ref(rtdb, 'game');
+      await update(gameRef, {
+        questions
+      });
+    } catch (err) {
+      console.warn('Firebase RTDB updateQuestions:', err);
+    }
+  }
+}
+

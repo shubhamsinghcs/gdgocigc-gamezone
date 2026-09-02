@@ -51,6 +51,7 @@ export interface GameState {
   showAnswer: boolean;
   fastestWinner: FastestWinner | null;
   questionWinners: Record<number, QuestionWinnerEntry[]>;
+  questions?: Question[];
 }
 
 export type ViewRole = 'landing' | 'player_register' | 'player_game' | 'presenter_big_screen';
@@ -63,4 +64,5 @@ export interface FirebaseConfig {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  measurementId?: string;
 }

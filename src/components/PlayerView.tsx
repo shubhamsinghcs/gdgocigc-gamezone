@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, Shield, Award, AlertCircle, CheckCircle2, XCircle, Clock, ArrowLeft, Flame, Volume2, VolumeX } from 'lucide-react';
 import { Player, GameState, Branch } from '../types';
-import { questionsData } from '../data/questions';
+import { getActiveQuestions } from '../utils/questionsHelper';
 import { submitAnswer } from '../services/firebaseSync';
 import { playCorrectSound, playWrongSound, playWinnerFanfare } from '../services/audio';
 
@@ -25,16 +25,17 @@ export const PlayerView: React.FC<Props> = ({
   const [isFastestForCurrent, setIsFastestForCurrent] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  const questions = React.useMemo(() => getActiveQuestions(gameState.questions), [gameState.questions]);
   const currentQIndex = gameState.currentQuestionIndex;
-  const currentQuestion = currentQIndex >= 0 && currentQIndex < questionsData.length
-    ? questionsData[currentQIndex]
+  const currentQuestion = currentQIndex >= 0 && currentQIndex < questions.length
+    ? questions[currentQIndex]
     : null;
 
   // 15-second timer calculation synchronized with questionStartTime
   const [secondsLeft, setSecondsLeft] = useState<number>(15);
 
   useEffect(() => {
-    if (!gameState.isTimerActive || currentQIndex < 0 || currentQIndex >= questionsData.length) {
+    if (!gameState.isTimerActive || currentQIndex < 0 || currentQIndex >= questions.length) {
       setSecondsLeft(0);
       return;
     }
@@ -48,11 +49,11 @@ export const PlayerView: React.FC<Props> = ({
     updateTimer();
     const interval = setInterval(updateTimer, 100);
     return () => clearInterval(interval);
-  }, [gameState.questionStartTime, gameState.isTimerActive, currentQIndex]);
+  }, [gameState.questionStartTime, gameState.isTimerActive, currentQIndex, questions.length]);
 
   // Reset local answer state whenever question changes
   useEffect(() => {
-    if (currentQIndex < 0 || currentQIndex >= questionsData.length) {
+    if (currentQIndex < 0 || currentQIndex >= questions.length) {
       setSelectedOption(null);
       setIsAnswerLocked(false);
       setIsCorrectAnswer(null);
@@ -199,7 +200,7 @@ export const PlayerView: React.FC<Props> = ({
             <div>• Incorrect tap: <span className="text-rose-400 font-bold">Locked Out (0 pts)</span></div>
           </div>
         </div>
-      ) : currentQIndex >= questionsData.length ? (
+      ) : currentQIndex >= questions.length ? (
         /* 2. Clash Concluded / Final Standings */
         <div className="my-auto text-center py-10 px-4">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center mb-5">
@@ -233,7 +234,7 @@ export const PlayerView: React.FC<Props> = ({
 
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-mono text-slate-400">
-                  Q{currentQIndex + 1} of {questionsData.length}
+                  Q{currentQIndex + 1} of {questions.length}
                 </span>
 
                 {/* SVG 15-second Ring Countdown */}

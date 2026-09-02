@@ -19,9 +19,15 @@ import {
   Volume2,
   VolumeX,
   Play,
-  Share2
+  Share2,
+  Upload,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Check
 } from 'lucide-react';
-import { GameState, Player, Branch, QuestionWinnerEntry } from '../types';
+import { GameState, Player, Branch, QuestionWinnerEntry, Question } from '../types';
+import { getActiveQuestions } from '../utils/questionsHelper';
 import { questionsData } from '../data/questions';
 import {
   setQuestionIndex,
@@ -29,7 +35,8 @@ import {
   toggleShowAnswer,
   resetGame,
   resetAllScores,
-  seedDemoClashPlayers
+  seedDemoClashPlayers,
+  updateQuestions
 } from '../services/firebaseSync';
 import { playCorrectSound, playWinnerFanfare } from '../services/audio';
 
@@ -50,10 +57,111 @@ export const PresenterView: React.FC<Props> = ({
   const [secondsLeft, setSecondsLeft] = useState<number>(15);
   const prevWinnerRef = useRef<string | null>(null);
 
+  // Question Manager Modal State
+  const [isQuestionManagerOpen, setIsQuestionManagerOpen] = useState(false);
+  const [qmTab, setQmTab] = useState<'upload' | 'add' | 'list'>('upload');
+  const [jsonPaste, setJsonPaste] = useState('');
+  const [qmError, setQmError] = useState<string | null>(null);
+  const [qmSuccess, setQmSuccess] = useState<string | null>(null);
+
+  // Add Single Question Form State
+  const [newCat, setNewCat] = useState('Latest Tech News');
+  const [newQText, setNewQText] = useState('');
+  const [newOpt0, setNewOpt0] = useState('');
+  const [newOpt1, setNewOpt1] = useState('');
+  const [newOpt2, setNewOpt2] = useState('');
+  const [newOpt3, setNewOpt3] = useState('');
+  const [newCorrect, setNewCorrect] = useState<number>(0);
+  const [newExpl, setNewExpl] = useState('');
+
+  const activeQuestions = useMemo(() => getActiveQuestions(gameState.questions), [gameState.questions]);
+
   const currentQIndex = gameState.currentQuestionIndex;
   const isLobby = currentQIndex < 0;
-  const isFinalScreen = currentQIndex >= questionsData.length;
-  const currentQuestion = !isLobby && !isFinalScreen ? questionsData[currentQIndex] : null;
+  const isFinalScreen = currentQIndex >= activeQuestions.length;
+  const currentQuestion = !isLobby && !isFinalScreen ? activeQuestions[currentQIndex] : null;
+
+  const handleJsonUploadSubmit = (textToParse: string) => {
+    try {
+      setQmError(null);
+      setQmSuccess(null);
+      const parsed = JSON.parse(textToParse);
+      if (!Array.isArray(parsed)) {
+        throw new Error('JSON root must be an array of questions.');
+      }
+      const validated: Question[] = parsed.map((item: any, idx: number) => {
+        if (!item.question || !Array.isArray(item.options) || item.options.length !== 4 || typeof item.correctIndex !== 'number') {
+          throw new Error(`Question at index ${idx} is missing required fields (question, options [4 items], correctIndex [0-3]).`);
+        }
+        return {
+          id: item.id || idx + 1,
+          category: item.category || 'Latest Tech News',
+          question: String(item.question),
+          options: [String(item.options[0]), String(item.options[1]), String(item.options[2]), String(item.options[3])] as [string, string, string, string],
+          correctIndex: Number(item.correctIndex),
+          explanation: item.explanation ? String(item.explanation) : undefined
+        };
+      });
+
+      updateQuestions(validated);
+      setQmSuccess(`Successfully imported ${validated.length} questions into live game session!`);
+      setJsonPaste('');
+    } catch (err: any) {
+      setQmError(err.message || 'Invalid JSON format.');
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        handleJsonUploadSubmit(content);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleAddManualQuestion = (e: React.FormEvent) => {
+    e.preventDefault();
+    setQmError(null);
+    setQmSuccess(null);
+    if (!newQText.trim() || !newOpt0.trim() || !newOpt1.trim() || !newOpt2.trim() || !newOpt3.trim()) {
+      setQmError('Please fill in the question text and all 4 options.');
+      return;
+    }
+    const newQ: Question = {
+      id: activeQuestions.length + 1,
+      category: newCat as any,
+      question: newQText.trim(),
+      options: [newOpt0.trim(), newOpt1.trim(), newOpt2.trim(), newOpt3.trim()],
+      correctIndex: Number(newCorrect),
+      explanation: newExpl.trim() ? newExpl.trim() : undefined
+    };
+
+    const updated = [...activeQuestions, newQ];
+    updateQuestions(updated);
+    setQmSuccess(`Added question #${newQ.id} successfully!`);
+    setNewQText('');
+    setNewOpt0('');
+    setNewOpt1('');
+    setNewOpt2('');
+    setNewOpt3('');
+    setNewExpl('');
+  };
+
+  const handleDeleteQuestion = (id: number) => {
+    const filtered = activeQuestions.filter((q) => q.id !== id).map((q, index) => ({ ...q, id: index + 1 }));
+    updateQuestions(filtered);
+  };
+
+  const handleResetDefault = () => {
+    if (window.confirm('Restore default question bank?')) {
+      updateQuestions(questionsData);
+    }
+  };
 
   // 15-second SVG countdown ring synchronized with questionStartTime
   useEffect(() => {
@@ -190,7 +298,7 @@ export const PresenterView: React.FC<Props> = ({
   };
 
   const handleNextQuestion = async () => {
-    if (currentQIndex < questionsData.length) {
+    if (currentQIndex < activeQuestions.length) {
       await setQuestionIndex(currentQIndex + 1);
     }
   };
@@ -351,7 +459,7 @@ export const PresenterView: React.FC<Props> = ({
                       {currentQuestion.category}
                     </span>
                     <span className="text-xs font-mono text-slate-400 font-bold">
-                      QUESTION {currentQIndex + 1} / {questionsData.length}
+                      QUESTION {currentQIndex + 1} / {activeQuestions.length}
                     </span>
                   </div>
 
@@ -654,7 +762,7 @@ export const PresenterView: React.FC<Props> = ({
             <button
               id="host-next-question-btn"
               onClick={handleNextQuestion}
-              disabled={currentQIndex >= questionsData.length}
+              disabled={currentQIndex >= activeQuestions.length}
               className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 font-mono text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-lg shadow-cyan-500/20"
             >
               Next Question
@@ -688,9 +796,9 @@ export const PresenterView: React.FC<Props> = ({
               </>
             )}
 
-            {currentQIndex < questionsData.length && (
+            {currentQIndex < activeQuestions.length && (
               <button
-                onClick={() => setQuestionIndex(questionsData.length)}
+                onClick={() => setQuestionIndex(activeQuestions.length)}
                 className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-mono text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
               >
                 <Trophy className="w-3.5 h-3.5" />
@@ -699,8 +807,16 @@ export const PresenterView: React.FC<Props> = ({
             )}
           </div>
 
-          {/* Right: Reset Controls */}
+          {/* Right: Reset Controls & Question Manager */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsQuestionManagerOpen(true)}
+              className="px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 font-mono text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Database className="w-3.5 h-3.5" />
+              Manage Questions ({activeQuestions.length})
+            </button>
+
             <button
               id="host-reset-game-btn"
               onClick={handleResetGame}
@@ -722,6 +838,275 @@ export const PresenterView: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* Question Manager Modal */}
+      {isQuestionManagerOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <div className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-bold font-display text-white">Quiz Question Bank Manager (Host Controls)</h3>
+              </div>
+              <button
+                onClick={() => setIsQuestionManagerOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex border-b border-slate-800 bg-slate-950/30 px-6 gap-2 pt-3">
+              <button
+                onClick={() => setQmTab('upload')}
+                className={`px-4 py-2.5 font-mono text-xs font-semibold rounded-t-xl transition cursor-pointer flex items-center gap-1.5 ${
+                  qmTab === 'upload' ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload JSON / Paste
+              </button>
+              <button
+                onClick={() => setQmTab('add')}
+                className={`px-4 py-2.5 font-mono text-xs font-semibold rounded-t-xl transition cursor-pointer flex items-center gap-1.5 ${
+                  qmTab === 'add' ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Single Question
+              </button>
+              <button
+                onClick={() => setQmTab('list')}
+                className={`px-4 py-2.5 font-mono text-xs font-semibold rounded-t-xl transition cursor-pointer flex items-center gap-1.5 ${
+                  qmTab === 'list' ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Database className="w-3.5 h-3.5" />
+                Active Questions ({activeQuestions.length})
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {qmError && (
+                <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 font-mono text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {qmError}
+                </div>
+              )}
+              {qmSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-mono text-xs flex items-center gap-2">
+                  <Check className="w-4 h-4 shrink-0" />
+                  {qmSuccess}
+                </div>
+              )}
+
+              {qmTab === 'upload' && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-sm font-bold text-white mb-1">1. Direct Upload JSON File</h4>
+                    <p className="text-xs text-slate-400 mb-3">Select a .json file containing an array of questions from your device.</p>
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileSelect}
+                      className="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-mono file:font-bold file:bg-cyan-500 file:text-slate-950 hover:file:bg-cyan-400 file:cursor-pointer transition"
+                    />
+                  </div>
+
+                  <div className="border-t border-slate-800 pt-5">
+                    <h4 className="text-sm font-bold text-white mb-1">2. Paste JSON Array</h4>
+                    <p className="text-xs text-slate-400 mb-3">Paste your question array JSON below and click Import.</p>
+                    <textarea
+                      rows={8}
+                      value={jsonPaste}
+                      onChange={(e) => setJsonPaste(e.target.value)}
+                      placeholder={`[\n  {\n    "category": "Latest Tech News",\n    "question": "What is AI?",\n    "options": ["A", "B", "C", "D"],\n    "correctIndex": 0,\n    "explanation": "Explanation here..."\n  }\n]`}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+                    />
+                    <div className="flex justify-end mt-3">
+                      <button
+                        onClick={() => handleJsonUploadSubmit(jsonPaste)}
+                        className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs font-bold transition cursor-pointer shadow-lg shadow-cyan-500/20"
+                      >
+                        Import & Sync JSON Questions
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {qmTab === 'add' && (
+                <form onSubmit={handleAddManualQuestion} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Category</label>
+                      <input
+                        type="text"
+                        value={newCat}
+                        onChange={(e) => setNewCat(e.target.value)}
+                        required
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Correct Answer Index (0-3)</label>
+                      <select
+                        value={newCorrect}
+                        onChange={(e) => setNewCorrect(Number(e.target.value))}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      >
+                        <option value={0}>Option 0 (A)</option>
+                        <option value={1}>Option 1 (B)</option>
+                        <option value={2}>Option 2 (C)</option>
+                        <option value={3}>Option 3 (D)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Question Text</label>
+                    <textarea
+                      rows={2}
+                      value={newQText}
+                      onChange={(e) => setNewQText(e.target.value)}
+                      required
+                      placeholder="Enter question statement..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Option A (Index 0)</label>
+                      <input
+                        type="text"
+                        value={newOpt0}
+                        onChange={(e) => setNewOpt0(e.target.value)}
+                        required
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Option B (Index 1)</label>
+                      <input
+                        type="text"
+                        value={newOpt1}
+                        onChange={(e) => setNewOpt1(e.target.value)}
+                        required
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Option C (Index 2)</label>
+                      <input
+                        type="text"
+                        value={newOpt2}
+                        onChange={(e) => setNewOpt2(e.target.value)}
+                        required
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Option D (Index 3)</label>
+                      <input
+                        type="text"
+                        value={newOpt3}
+                        onChange={(e) => setNewOpt3(e.target.value)}
+                        required
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Explanation (Optional)</label>
+                    <input
+                      type="text"
+                      value={newExpl}
+                      onChange={(e) => setNewExpl(e.target.value)}
+                      placeholder="Why is this answer correct?"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-xs text-white focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs font-bold transition cursor-pointer shadow-lg shadow-cyan-500/20 flex items-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Question to Pool
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {qmTab === 'list' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-mono text-slate-400">
+                      Total Active Questions: <span className="text-white font-bold">{activeQuestions.length}</span>
+                    </div>
+                    <button
+                      onClick={handleResetDefault}
+                      className="px-3 py-1.5 rounded-lg bg-rose-950/60 border border-rose-500/30 hover:bg-rose-900/80 text-rose-300 font-mono text-xs transition cursor-pointer"
+                    >
+                      Reset to Default Questions
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
+                    {activeQuestions.map((q, idx) => (
+                      <div key={q.id || idx} className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-mono uppercase bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20">
+                              {q.category}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400">Q#{idx + 1}</span>
+                          </div>
+                          <div className="text-sm font-bold text-white mb-2">{q.question}</div>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            {q.options.map((opt, oIdx) => (
+                              <div
+                                key={oIdx}
+                                className={`p-1.5 rounded border ${
+                                  oIdx === q.correctIndex
+                                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 font-semibold'
+                                    : 'bg-slate-900/50 border-slate-800 text-slate-400'
+                                }`}
+                              >
+                                {String.fromCharCode(65 + oIdx)}: {opt}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteQuestion(q.id)}
+                          className="p-2 rounded-lg bg-slate-900 hover:bg-rose-950/80 text-slate-400 hover:text-rose-400 transition cursor-pointer shrink-0"
+                          title="Delete Question"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+              <button
+                onClick={() => setIsQuestionManagerOpen(false)}
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-semibold transition cursor-pointer"
+              >
+                Close Manager
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
