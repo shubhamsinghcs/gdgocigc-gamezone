@@ -1,0 +1,39 @@
+# Environment variables and secrets (NEVER commit or push to GitHub)
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local credentials and config
+js/firebase-config.local.js
+firebase-applet-config.json
+credentials.json
+*.pem
+serviceAccountKey.json
+
+# Dependencies
+node_modules/
+bun.lockb
+
+# Build output and cache
+dist/
+dist-ssr/
+.cache/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db

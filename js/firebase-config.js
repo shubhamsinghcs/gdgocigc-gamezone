@@ -1,75 +1,67 @@
 /**
  * js/firebase-config.js
- * Firebase initialization & Firestore / Realtime DB references
+ * Firebase initialization & Firestore database reference
+ * Uses environment variables (VITE_FIREBASE_*) with secure fallback
  */
 
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { initializeApp, getApps } from 'firebase/app';
 import {
-  getDatabase,
-  ref,
-  onValue,
-  set
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+  getFirestore,
+  doc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  collection,
+  serverTimestamp
+} from 'firebase/firestore';
 
-export const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAyI12myuSpTKxQcKUqwA99uWvI1VR2ODs",
-  authDomain: "gdgocigc-gamezone.firebaseapp.com",
-  databaseURL: "https://gdgocigc-gamezone-default-rtdb.firebaseio.com",
-  projectId: "gdgocigc-gamezone",
-  storageBucket: "gdgocigc-gamezone.firebasestorage.app",
-  messagingSenderId: "483943536670",
-  appId: "1:483943536670:web:00d84096fe02088b88360f",
-  measurementId: "G-8VE8CPW7PV"
+// Environment variable extraction (Vite import.meta.env support)
+const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {};
+
+// Base configuration reading strictly from environment variables (no hardcoded keys)
+export const firebaseConfig = {
+  apiKey: env.VITE_FIREBASE_API_KEY || "",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: env.VITE_FIREBASE_APP_ID || "",
+  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
-const CONFIG_STORAGE_KEY = 'fastest_finger_firebase_config';
-
-export function getSavedFirebaseConfig() {
-  if (typeof window === 'undefined') return DEFAULT_FIREBASE_CONFIG;
-  try {
-    const raw = localStorage.getItem(CONFIG_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // fallback
-  }
-  return DEFAULT_FIREBASE_CONFIG;
-}
-
-export function saveFirebaseConfig(config) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
-  initFirebase(config);
-}
-
-let firebaseApp = null;
-let rtdb = null;
+let app = null;
+let db = null;
 let isFirebaseConnected = false;
 
-export function initFirebase(customConfig) {
+// Only attempt initialization if environment variables are provided
+if (firebaseConfig.apiKey && firebaseConfig.projectId) {
   try {
-    const cfg = customConfig || getSavedFirebaseConfig();
-    if (cfg.projectId && !cfg.databaseURL) {
-      cfg.databaseURL = `https://${cfg.projectId}-default-rtdb.firebaseio.com`;
-    }
-    const existing = getApps();
-    if (existing.length > 0) {
-      firebaseApp = existing[0];
+    const existingApps = getApps();
+    if (existingApps.length > 0) {
+      app = existingApps[0];
     } else {
-      firebaseApp = initializeApp(cfg);
+      app = initializeApp(firebaseConfig);
     }
-    
-    if (cfg.databaseURL && !cfg.databaseURL.includes('PLACEHOLDER')) {
-      rtdb = getDatabase(firebaseApp, cfg.databaseURL);
-      isFirebaseConnected = true;
-    }
-  } catch (err) {
-    console.warn('[Firebase Init Warning - fallback active]:', err);
+    db = getFirestore(app);
+    isFirebaseConnected = true;
+  } catch (error) {
+    console.warn('[Firebase Firestore Init Warning - falling back to multi-tab sync]:', error);
     isFirebaseConnected = false;
   }
-  return { app: firebaseApp, db: rtdb, isConnected: () => isFirebaseConnected };
+} else {
+  // When no environment variables are defined (e.g. fresh clone from GitHub),
+  // gracefully fall back to multi-tab BroadcastChannel & LocalStorage sync
+  isFirebaseConnected = false;
 }
 
-// Initialize on load
-initFirebase();
-
-export { rtdb, ref, onValue, set, isFirebaseConnected };
+export {
+  app,
+  db,
+  doc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  collection,
+  serverTimestamp,
+  isFirebaseConnected
+};

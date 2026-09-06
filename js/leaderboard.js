@@ -64,7 +64,7 @@ export function renderLeaderboardHTML(playersObj) {
           </span>
           <div class="truncate">
             <span class="text-sm font-bold text-white block truncate">${escapeHtml(p.name)}</span>
-            <span class="text-[10px] font-mono text-cyan-400">${escapeHtml(p.branch)} • ${p.fastestCount || 0} ⚡</span>
+            <span class="text-[10px] font-mono text-cyan-400">${escapeHtml(p.branch)}${p.fastestCount ? ` • ${p.fastestCount} fastest` : ''}</span>
           </div>
         </div>
         <div class="text-right font-mono shrink-0 pl-2">
