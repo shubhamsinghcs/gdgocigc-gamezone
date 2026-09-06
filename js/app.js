@@ -376,15 +376,15 @@ function renderLandingHTML() {
   const playerCount = Object.keys(players).length;
 
   return `
-    <div class="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col justify-between p-4 md:p-6 relative overflow-hidden">
+    <div class="app-viewport bg-[#0B0F17] text-slate-100 flex flex-col justify-between p-3 sm:p-4 md:p-6 safe-pad relative overflow-x-hidden">
       <div class="google-quad-bar absolute top-0 left-0"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(66,133,244,0.1),transparent_60%)] pointer-events-none"></div>
 
       <!-- Top Navigation Bar -->
-      <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 pb-4 border-b border-slate-800/80 gap-2 sm:gap-4">
+      <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 pb-3 sm:pb-4 border-b border-slate-800/80 gap-1.5 sm:gap-4">
         <!-- Left Side: GDG Full Logo (Pure Inline Vector SVG) -->
         <div class="flex items-center flex-1 justify-start min-w-0">
-          <div class="header-logo" style="max-width: 320px; min-width: 240px;">
+          <div class="header-logo">
             <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
               <!-- GDG CODE BRACKETS (< >) -->
               <g id="gdg-brackets">
@@ -441,8 +441,8 @@ function renderLandingHTML() {
       </header>
 
       <!-- Center Registration Card -->
-      <main class="w-full max-w-xl mx-auto my-auto py-8 relative z-10">
-        <div class="material-card rounded-3xl p-6 sm:p-10 space-y-6">
+      <main class="w-full max-w-sm sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-4 my-auto relative z-10">
+        <div class="material-card rounded-3xl p-6 sm:p-10 space-y-6 max-w-xl mx-auto">
           <div class="space-y-1.5">
             <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Sign-In</h2>
             <p class="text-xs sm:text-sm text-slate-400 font-mono">Enter your name and Code</p>
@@ -507,12 +507,12 @@ function renderLandingHTML() {
 
       <!-- Rules Modal -->
       ${showRulesModal ? `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="material-card rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 border border-slate-700 relative animate-scale-up">
+        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div class="material-card rounded-3xl max-w-lg w-full p-5 sm:p-8 space-y-4 sm:space-y-5 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#4285F4]"></span>
-                <h3 class="text-lg font-bold text-white font-display">Competition Rules</h3>
+                <h3 class="text-base sm:text-lg font-bold text-white font-display">Competition Rules</h3>
               </div>
               <button id="btn-close-rules" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -559,8 +559,8 @@ function renderLandingHTML() {
 
       <!-- Host Login Authentication Modal -->
       ${showHostLoginModal ? `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="material-card rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 border border-slate-700 relative animate-scale-up">
+        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div class="material-card rounded-3xl max-w-md w-full p-5 sm:p-8 space-y-4 sm:space-y-5 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
@@ -924,37 +924,39 @@ function renderPlayerGameHTML() {
   }
 
   return `
-    <div class="min-h-screen bg-[#070b14] text-slate-100 flex flex-col justify-between p-4 max-w-lg mx-auto relative select-none font-sans">
+    <div class="app-viewport bg-[#070b14] text-slate-100 flex flex-col justify-between safe-pad relative select-none font-sans overflow-x-hidden">
       <div class="google-quad-bar absolute top-0 left-0"></div>
-      <header class="flex items-center justify-between py-2 border-b border-slate-800/80 mb-3">
-        <div class="flex items-center gap-2">
-          <button id="btn-player-roles" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-xs font-mono">← Roles</button>
-          <button id="btn-toggle-sound" class="p-1.5 rounded-lg border text-xs transition flex items-center justify-center ${soundEnabled ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}">
-            ${soundEnabled ? `
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-            ` : `
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-            `}
-          </button>
-        </div>
-        <div class="flex items-center gap-2">
-          <div class="text-right">
-            <span class="text-[11px] text-slate-400 font-mono block truncate max-w-[110px]">${escapeHtml(currentPlayer.name)}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/30">${currentPlayer.branch}</span>
+      <div class="w-full max-w-sm sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-4 flex-1 flex flex-col justify-between">
+        <header class="flex items-center justify-between py-2 border-b border-slate-800/80 mb-3">
+          <div class="flex items-center gap-2">
+            <button id="btn-player-roles" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-xs font-mono cursor-pointer">← Roles</button>
+            <button id="btn-toggle-sound" class="p-1.5 rounded-lg border text-xs transition flex items-center justify-center cursor-pointer ${soundEnabled ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}">
+              ${soundEnabled ? `
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              ` : `
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+              `}
+            </button>
           </div>
-          <button id="btn-edit-profile" class="h-8 w-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white text-xs font-bold">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        </div>
-      </header>
+          <div class="flex items-center gap-2">
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 font-mono block truncate max-w-[110px]">${escapeHtml(currentPlayer.name)}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/30">${currentPlayer.branch}</span>
+            </div>
+            <button id="btn-edit-profile" class="h-8 w-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white text-xs font-bold cursor-pointer">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+          </div>
+        </header>
 
-      <main class="flex-1 flex flex-col justify-center my-auto w-full">
-        ${mainContent}
-      </main>
+        <main class="flex-1 flex flex-col justify-center my-auto w-full">
+          ${mainContent}
+        </main>
 
-      <footer class="py-2 border-t border-slate-800/80 text-center font-mono text-[11px] text-slate-500">
-        GDGoC IGC Game Zone • Real-Time Participant Node
-      </footer>
+        <footer class="py-2 border-t border-slate-800/80 text-center font-mono text-[11px] text-slate-500">
+          GDGoC IGC Game Zone • Real-Time Participant Node
+        </footer>
+      </div>
     </div>
   `;
 }
@@ -1221,17 +1223,17 @@ function renderPresenterHTML() {
   ` : '';
 
   return `
-    <div class="min-h-screen bg-[#070b14] text-slate-100 flex flex-col justify-between p-4 md:p-6 relative select-none font-sans">
+    <div class="app-viewport bg-[#070b14] text-slate-100 flex flex-col justify-between p-3 sm:p-4 md:p-6 safe-pad relative select-none font-sans overflow-x-hidden">
       <div class="google-quad-bar absolute top-0 left-0"></div>
-      <header class="flex items-center justify-between pb-4 border-b border-slate-800/80 mb-6 relative z-10">
-        <div class="flex items-center gap-3">
-          <button id="btn-presenter-roles" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-mono flex items-center gap-1.5">← Participant Screen</button>
-          <span class="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs uppercase font-bold">Host Live Console</span>
+      <header class="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800/80 mb-4 sm:mb-6 relative z-10 gap-2">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button id="btn-presenter-roles" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-mono flex items-center gap-1.5">← Participant Screen</button>
+          <span class="px-2.5 sm:px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs uppercase font-bold">Host Live Console</span>
         </div>
         <div class="flex items-center gap-2">
-          <button id="btn-open-qm" class="px-3 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-xs flex items-center gap-1.5 cursor-pointer">
+          <button id="btn-open-qm" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-xs flex items-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            <span>Questions (${activeQuestions.length})</span>
+            <span class="hidden sm:inline">Questions</span> (${activeQuestions.length})
           </button>
           <button id="btn-presenter-sound" class="p-2 rounded-xl border flex items-center justify-center ${soundEnabled ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'}">
             ${soundEnabled ? `
@@ -1283,15 +1285,15 @@ function renderPresenterHTML() {
 
       <!-- Question Manager Modal -->
       ${showQuestionManagerModal ? `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="material-card rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-4 border border-slate-700 relative animate-scale-up">
+        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div class="material-card rounded-3xl max-w-2xl w-full p-5 sm:p-8 space-y-4 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 class="text-lg font-bold text-white font-display">Tournament Question Vault</h3>
+              <h3 class="text-base sm:text-lg font-bold text-white font-display">Tournament Question Vault</h3>
               <button id="btn-close-qm" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-            <div class="max-h-[380px] overflow-y-auto custom-scrollbar space-y-3 font-mono text-xs">
+            <div class="max-h-[50dvh] overflow-y-auto custom-scrollbar space-y-3 font-mono text-xs">
               ${activeQuestions.map((q, idx) => `
                 <div class="p-3.5 rounded-xl border ${idx === qIndex ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-slate-800 bg-slate-950/50'} space-y-1">
                   <div class="flex items-center justify-between">
