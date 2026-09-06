@@ -194,14 +194,10 @@ function renderLandingHTML() {
 
       <!-- Top Navigation Bar -->
       <header class="flex items-center justify-between w-full max-w-6xl mx-auto relative z-10 pb-4 border-b border-slate-800/80">
-        <!-- Left Side: GDG Logo & Title -->
+        <!-- Left Side: GDG Full Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-lg">
-            <img src="./gdg_clean.svg" alt="GDG Logo" class="w-full h-full object-contain" />
-          </div>
-          <div>
-            <span class="text-xs font-mono uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-red-400 to-yellow-400 font-bold block">GDGoC IGC</span>
-            <h2 class="text-base sm:text-lg font-extrabold text-white font-display tracking-tight">Game Zone Clash</h2>
+          <div class="h-12 sm:h-14 w-auto max-w-[280px] sm:max-w-[320px] flex items-center">
+            <img src="./gdg_clean.svg" alt="Google Developer Groups On Campus · Indo Global College" class="w-full h-full object-contain" />
           </div>
         </div>
 

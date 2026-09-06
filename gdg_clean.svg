@@ -1,29 +1,34 @@
-<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none">
-  <!-- LEFT BRACKET (<) -->
-  <g id="left-bracket">
-    <!-- Blue Arm (Bottom Left) -->
-    <line x1="250" y1="225" x2="355" y2="330" 
-          stroke="#4285F4" stroke-width="65" stroke-linecap="round" />
-    
-    <!-- Red Arm (Top Left) -->
-    <line x1="250" y1="225" x2="355" y2="120" 
-          stroke="#EA4335" stroke-width="65" stroke-linecap="round" />
+<svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none">
+  <!-- GDG CODE BRACKETS (< >) -->
+  <g id="gdg-brackets">
+    <!-- LEFT BRACKET (<) -->
+    <!-- Blue Arm (Bottom-Right) -->
+    <line x1="425" y1="75" x2="458" y2="108" stroke="#4285F4" stroke-width="28" stroke-linecap="round" />
+    <!-- Red Arm (Top-Right) -->
+    <line x1="425" y1="75" x2="458" y2="42" stroke="#EA4335" stroke-width="28" stroke-linecap="round" />
 
-    <!-- Joint Overlap Shadow -->
-    <circle cx="250" cy="225" r="32.5" fill="#000000" opacity="0.22" />
+    <!-- RIGHT BRACKET (>) -->
+    <!-- Yellow Arm (Bottom-Left) -->
+    <line x1="535" y1="75" x2="502" y2="108" stroke="#FBBC05" stroke-width="28" stroke-linecap="round" />
+    <!-- Green Arm (Top-Left) -->
+    <line x1="535" y1="75" x2="502" y2="42" stroke="#34A853" stroke-width="28" stroke-linecap="round" />
   </g>
 
-  <!-- RIGHT BRACKET (>) -->
-  <g id="right-bracket">
-    <!-- Yellow Arm (Bottom Right) -->
-    <line x1="550" y1="225" x2="445" y2="330" 
-          stroke="#FBBC05" stroke-width="65" stroke-linecap="round" />
-    
-    <!-- Green Arm (Top Right) -->
-    <line x1="550" y1="225" x2="445" y2="120" 
-          stroke="#34A853" stroke-width="65" stroke-linecap="round" />
+  <!-- PRIMARY TEXT: Google Developer Groups -->
+  <text x="480" y="172" 
+        text-anchor="middle" 
+        fill="#FFFFFF" 
+        font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" 
+        font-size="48" 
+        font-weight="500" 
+        letter-spacing="-0.5px">
+    Google Developer Groups
+  </text>
 
-    <!-- Joint Overlap Shadow -->
-    <circle cx="550" cy="225" r="32.5" fill="#000000" opacity="0.22" />
-  </g>
+  <!-- SECONDARY TEXT: On Campus · Indo Global College -->
+  <text x="480" y="218" text-anchor="middle" font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="400">
+    <tspan fill="#4285F4">On Campus</tspan>
+    <tspan fill="#4285F4" font-weight="bold"> · </tspan>
+    <tspan fill="#FFFFFF">Indo Global College</tspan>
+  </text>
 </svg>
