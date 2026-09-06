@@ -382,10 +382,39 @@ function renderLandingHTML() {
 
       <!-- Top Navigation Bar -->
       <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 pb-4 border-b border-slate-800/80 gap-2 sm:gap-4">
-        <!-- Left Side: GDG Full Logo -->
+        <!-- Left Side: GDG Full Logo (Pure Inline Vector SVG) -->
         <div class="flex items-center flex-1 justify-start min-w-0">
-          <div class="h-9 sm:h-12 w-auto max-w-[170px] sm:max-w-[260px] flex items-center">
-            <img src="./gdg_clean.svg" alt="Google Developer Groups On Campus · Indo Global College" class="w-full h-full object-contain object-left" />
+          <div class="header-logo" style="max-width: 320px; min-width: 240px;">
+            <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
+              <!-- GDG CODE BRACKETS (< >) -->
+              <g id="gdg-brackets">
+                <!-- LEFT BRACKET (<) -->
+                <line x1="425" y1="75" x2="458" y2="108" stroke="#4285F4" stroke-width="28" stroke-linecap="round" />
+                <line x1="425" y1="75" x2="458" y2="42" stroke="#EA4335" stroke-width="28" stroke-linecap="round" />
+
+                <!-- RIGHT BRACKET (>) -->
+                <line x1="535" y1="75" x2="502" y2="108" stroke="#FBBC05" stroke-width="28" stroke-linecap="round" />
+                <line x1="535" y1="75" x2="502" y2="42" stroke="#34A853" stroke-width="28" stroke-linecap="round" />
+              </g>
+
+              <!-- PRIMARY TEXT: Google Developer Groups -->
+              <text x="480" y="172" 
+                    text-anchor="middle" 
+                    fill="#FFFFFF" 
+                    font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" 
+                    font-size="48" 
+                    font-weight="500" 
+                    letter-spacing="-0.5px">
+                Google Developer Groups
+              </text>
+
+              <!-- SECONDARY TEXT: On Campus · Indo Global College -->
+              <text x="480" y="218" text-anchor="middle" font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="400">
+                <tspan fill="#4285F4">On Campus</tspan>
+                <tspan fill="#4285F4" font-weight="bold"> · </tspan>
+                <tspan fill="#FFFFFF">Indo Global College</tspan>
+              </text>
+            </svg>
           </div>
         </div>
 

@@ -26,7 +26,45 @@
 </head>
 <body class="bg-[#0B0F17] text-slate-100 min-h-screen selection:bg-blue-500 selection:text-white">
   <!-- Root Container for Vanilla JS SPA Router -->
-  <div id="app-root"></div>
+  <div id="app-root">
+    <!-- Top Navigation Header (Pure Inline Vector SVG) -->
+    <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 p-4 md:p-6 pb-4 border-b border-slate-800/80 gap-2 sm:gap-4">
+      <div class="flex items-center flex-1 justify-start min-w-0">
+        <div class="header-logo" style="max-width: 320px; min-width: 240px;">
+          <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
+            <!-- GDG CODE BRACKETS (< >) -->
+            <g id="gdg-brackets">
+              <!-- LEFT BRACKET (<) -->
+              <line x1="425" y1="75" x2="458" y2="108" stroke="#4285F4" stroke-width="28" stroke-linecap="round" />
+              <line x1="425" y1="75" x2="458" y2="42" stroke="#EA4335" stroke-width="28" stroke-linecap="round" />
+
+              <!-- RIGHT BRACKET (>) -->
+              <line x1="535" y1="75" x2="502" y2="108" stroke="#FBBC05" stroke-width="28" stroke-linecap="round" />
+              <line x1="535" y1="75" x2="502" y2="42" stroke="#34A853" stroke-width="28" stroke-linecap="round" />
+            </g>
+
+            <!-- PRIMARY TEXT: Google Developer Groups -->
+            <text x="480" y="172" 
+                  text-anchor="middle" 
+                  fill="#FFFFFF" 
+                  font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" 
+                  font-size="48" 
+                  font-weight="500" 
+                  letter-spacing="-0.5px">
+              Google Developer Groups
+            </text>
+
+            <!-- SECONDARY TEXT: On Campus · Indo Global College -->
+            <text x="480" y="218" text-anchor="middle" font-family="'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="400">
+              <tspan fill="#4285F4">On Campus</tspan>
+              <tspan fill="#4285F4" font-weight="bold"> · </tspan>
+              <tspan fill="#FFFFFF">Indo Global College</tspan>
+            </text>
+          </svg>
+        </div>
+      </div>
+    </header>
+  </div>
 
   <!-- Main ES6 Module Entry Point -->
   <script type="module" src="./js/app.js"></script>
