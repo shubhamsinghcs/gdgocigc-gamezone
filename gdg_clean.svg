@@ -1,21 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="100%" height="100%" fill="none">
-  <!-- LEFT CHEVRON (<) -->
-  <!-- 1. Red Top Arm (Underneath) -->
-  <g transform="translate(286, 192) rotate(-45)">
-    <rect x="-78" y="-150" width="156" height="300" rx="78" fill="#EA4335" />
-  </g>
-  <!-- 2. Blue Bottom Arm (On Top) -->
-  <g transform="translate(230, 318) rotate(45)">
-    <rect x="-78" y="-185" width="156" height="370" rx="78" fill="#4285F4" />
+<svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none">
+  <!-- LEFT BRACKET (<) -->
+  <g id="left-bracket">
+    <!-- Blue Arm (Bottom Left) -->
+    <line x1="250" y1="225" x2="355" y2="330" 
+          stroke="#4285F4" stroke-width="65" stroke-linecap="round" />
+    
+    <!-- Red Arm (Top Left) -->
+    <line x1="250" y1="225" x2="355" y2="120" 
+          stroke="#EA4335" stroke-width="65" stroke-linecap="round" />
+
+    <!-- Joint Overlap Shadow -->
+    <circle cx="250" cy="225" r="32.5" fill="#000000" opacity="0.22" />
   </g>
 
-  <!-- RIGHT CHEVRON (>) -->
-  <!-- 3. Yellow Bottom Arm (Underneath) -->
-  <g transform="translate(674, 348) rotate(-45)">
-    <rect x="-78" y="-150" width="156" height="300" rx="78" fill="#FBBC04" />
-  </g>
-  <!-- 4. Green Top Arm (On Top) -->
-  <g transform="translate(730, 222) rotate(45)">
-    <rect x="-78" y="-185" width="156" height="370" rx="78" fill="#34A853" />
+  <!-- RIGHT BRACKET (>) -->
+  <g id="right-bracket">
+    <!-- Yellow Arm (Bottom Right) -->
+    <line x1="550" y1="225" x2="445" y2="330" 
+          stroke="#FBBC05" stroke-width="65" stroke-linecap="round" />
+    
+    <!-- Green Arm (Top Right) -->
+    <line x1="550" y1="225" x2="445" y2="120" 
+          stroke="#34A853" stroke-width="65" stroke-linecap="round" />
+
+    <!-- Joint Overlap Shadow -->
+    <circle cx="550" cy="225" r="32.5" fill="#000000" opacity="0.22" />
   </g>
 </svg>

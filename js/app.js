@@ -23,9 +23,11 @@ let gameState = {
 };
 let players = {};
 let soundEnabled = true;
+let showRulesModal = false;
+let pendingPlayer = null;
 
 // Channel for multi-tab fallback sync when Firebase RTDB isn't connected
-const broadcastChannel = typeof window !== 'undefined' ? new BroadcastChannel('gdgoc_game_zone_sync') : null;
+const broadcastChannel = typeof window !== 'undefined' ? new BroadcastChannel('gdgoc_igc_game_zone') : null;
 
 if (broadcastChannel) {
   broadcastChannel.onmessage = (event) => {
@@ -125,9 +127,9 @@ setInterval(() => {
       const activeQs = getActiveQuestions(gameState.questions);
       if (gameState.currentQuestionIndex < activeQs.length) {
         const elapsed = (Date.now() - gameState.questionStartTime) / 1000;
-        const remaining = Math.max(0, 15 - elapsed);
+        const remaining = Math.max(0, 10 - elapsed);
         timerEl.textContent = remaining.toFixed(1) + 's';
-        const pct = Math.min(100, Math.max(0, (remaining / 15) * 100));
+        const pct = Math.min(100, Math.max(0, (remaining / 10) * 100));
         barEl.style.width = pct + '%';
         if (remaining <= 4) {
           timerEl.className = 'text-sm font-extrabold text-rose-400 animate-pulse';
@@ -180,80 +182,206 @@ function renderApp() {
 // VIEW 1: LANDING SCREEN
 // ==========================================
 function renderLandingHTML() {
+  const nameVal = currentPlayer?.name || '';
+  const branchVal = currentPlayer?.branch || 'CSE';
+  const branches = ['CSE', 'ECE', 'IT', 'ME', 'CE', 'Other'];
   const playerCount = Object.keys(players).length;
+
   return `
-    <div class="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div class="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col justify-between p-4 md:p-6 relative overflow-hidden">
       <div class="google-quad-bar absolute top-0 left-0"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(66,133,244,0.12),transparent_60%)] pointer-events-none"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(66,133,244,0.1),transparent_60%)] pointer-events-none"></div>
 
-      <div class="w-full max-w-xl text-center space-y-8 relative z-10 my-auto">
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-xs uppercase tracking-widest font-bold">
-          <span>⚡ GDGoC IGC Speed Arena</span>
+      <!-- Top Navigation Bar -->
+      <header class="flex items-center justify-between w-full max-w-6xl mx-auto relative z-10 pb-4 border-b border-slate-800/80">
+        <!-- Left Side: GDG Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-lg">
+            <img src="./gdg_clean.svg" alt="GDG Logo" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-red-400 to-yellow-400 font-bold block">GDGoC IGC</span>
+            <h2 class="text-base sm:text-lg font-extrabold text-white font-display tracking-tight">Game Zone Clash</h2>
+          </div>
         </div>
 
-        <div class="space-y-3">
-          <h1 class="text-4xl sm:text-6xl font-black text-white font-display tracking-tight">
-            Game Zone <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-red-400 to-yellow-400">Clash</span>
-          </h1>
-          <p class="text-sm sm:text-base text-slate-400 max-w-md mx-auto font-mono">
-            Fastest Finger First • 15s Round Countdown • Microsecond Speed Bonus • Live Firestore Sync
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto pt-2">
-          <button
-            id="btn-role-player"
-            class="p-6 rounded-2xl material-card hover:border-blue-500/50 transition flex flex-col items-center text-center space-y-3 group cursor-pointer"
-          >
-            <div class="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition">
-              🎮
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-white">Join as Player</h3>
-              <p class="text-xs text-slate-400 mt-1">Answer questions fast & rack up branch points</p>
-            </div>
-            <span class="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full">
-              ${playerCount} Combatants Online
-            </span>
-          </button>
-
-          <button
-            id="btn-role-presenter"
-            class="p-6 rounded-2xl material-card hover:border-yellow-500/50 transition flex flex-col items-center text-center space-y-3 group cursor-pointer"
-          >
-            <div class="w-14 h-14 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition">
-              🖥️
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-white">Big Screen Presenter</h3>
-              <p class="text-xs text-slate-400 mt-1">Host live showdown & manage questions</p>
-            </div>
-            <span class="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-full">
-              Full Host Mode
-            </span>
+        <!-- Right Side: Online Counter & Host Login -->
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>${playerCount} Online Folks </span>
+          </div>
+          <button id="btn-host-login" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 border border-yellow-500/40 text-yellow-300 font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition shadow-md shadow-yellow-500/10">
+           Host Login
           </button>
         </div>
+      </header>
 
-        <div class="pt-4 text-xs font-mono text-slate-500">
-          Powered by Google Developer Groups on Campus • Web Audio API & ES6 Modules
+      <!-- Main Content /Sign-In -->
+      <main class="flex-1 flex flex-col items-center justify-center relative z-10 py-8">
+        <div class="w-full max-w-md material-card rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative border-t-2 border-t-blue-500">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-gradient-to-br from-blue-500/20 via-red-500/20 to-yellow-500/20 border border-blue-500/30 rounded-2xl text-blue-400 font-bold text-xl shadow-lg">⚡</div>
+            <div>
+              <h1 class="text-2xl font-black text-white font-display">Sign-In</h1>
+              <p class="text-xs text-slate-400 font-mono">Enter your name and Code</p>
+            </div>
+          </div>
+
+          <div id="reg-error" class="hidden p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs font-mono"></div>
+
+          <form id="form-landing-register" class="space-y-4">
+            <div>
+              <label class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-1.5">Student Full Name *</label>
+              <input
+                id="input-player-name"
+                type="text"
+                value="${nameVal}"
+                placeholder="e.g. Alex Sharma"
+                maxlength="24"
+                class="w-full bg-slate-950 border border-slate-700 focus:border-blue-500 rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-mono"
+                autocomplete="off"
+                autofocus
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-1.5">Branch / Department *</label>
+              <select
+                id="select-player-branch"
+                class="w-full bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-mono cursor-pointer"
+              >
+                ${branches.map(b => `<option value="${b}" ${branchVal === b ? 'selected' : ''}>${b}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-1.5">Game PIN Code (From Host) *</label>
+              <input
+                id="input-game-pin"
+                type="text"
+                placeholder="e.g. 4829"
+                maxlength="6"
+                class="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-mono tracking-widest text-center text-lg font-bold"
+                autocomplete="off"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 hover:opacity-95 text-slate-950 font-extrabold font-mono tracking-wider uppercase transition shadow-lg shadow-blue-500/25 cursor-pointer text-sm"
+            >
+              Enter the Game Zone ➔
+            </button>
+          </form>
+        </div>
+      </main>
+
+      <footer class="w-full max-w-6xl mx-auto py-3 border-t border-slate-800/80 text-center font-mono text-xs text-slate-400 relative z-10">
+        Built by Google Developer Groups on Campus IGC Team for community with love.
+      </footer>
+    </div>
+
+    ${showRulesModal ? `
+      <div class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
+        <div class="material-card rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-6 shadow-2xl border border-blue-500/40 relative">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-amber-500/20 border border-amber-500/40 rounded-2xl text-amber-400 font-bold text-xl">📜</div>
+            <div>
+              <h3 class="text-xl font-black text-white font-display">Game Rules & Instructions</h3>
+              <p class="text-xs text-slate-400 font-mono">Read carefully before entering the arena</p>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 font-mono text-xs text-slate-300">
+            <div class="flex items-start gap-2.5">
+              <span class="text-cyan-400 font-bold text-sm">⏱️</span>
+              <div><strong class="text-white">10-Second Speed Match:</strong> Each question gives you exactly 10 seconds to lock in your answer.</div>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-emerald-400 font-bold text-sm">🎯</span>
+              <div><strong class="text-emerald-400">Dynamic Points:</strong> Earn <span class="text-emerald-300 font-bold">Remaining Seconds × 5 Points</span> for every correct answer. Faster answers = higher score!</div>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-amber-400 font-bold text-sm">⚡</span>
+              <div><strong class="text-amber-300">Fastest Finger Bonus:</strong> The absolute first correct combatant receives <span class="text-amber-400 font-bold">+2 Bonus Points</span> and special fanfare.</div>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-blue-400 font-bold text-sm">🏆</span>
+              <div><strong class="text-white">Live Leaderboard:</strong> Standings update in real-time across departmental branch rivalries after every question.</div>
+            </div>
+          </div>
+
+          <button
+            id="btn-accept-rules"
+            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold font-mono tracking-wider uppercase transition shadow-lg shadow-emerald-500/25 cursor-pointer text-sm"
+          >
+            Read the Rules & Continue to Game ➔
+          </button>
         </div>
       </div>
-    </div>
+    ` : ''}
   `;
 }
 
 function bindLandingEvents() {
-  document.getElementById('btn-role-player')?.addEventListener('click', () => {
-    if (currentPlayer) {
-      currentView = 'player_game';
-    } else {
-      currentView = 'player_register';
-    }
+  document.getElementById('btn-host-login')?.addEventListener('click', () => {
+    currentView = 'presenter_big_screen';
     renderApp();
   });
 
-  document.getElementById('btn-role-presenter')?.addEventListener('click', () => {
-    currentView = 'presenter_big_screen';
+  document.getElementById('btn-accept-rules')?.addEventListener('click', () => {
+    if (pendingPlayer) {
+      currentPlayer = pendingPlayer;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gdgoc_current_player', JSON.stringify(currentPlayer));
+      }
+      savePlayerToDB(currentPlayer);
+    }
+    showRulesModal = false;
+    pendingPlayer = null;
+    currentView = 'player_game';
+    renderApp();
+  });
+
+  document.getElementById('form-landing-register')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('input-player-name');
+    const branchSelect = document.getElementById('select-player-branch');
+    const pinInput = document.getElementById('input-game-pin');
+    const errBox = document.getElementById('reg-error');
+
+    const trimmed = nameInput.value.trim();
+    if (!trimmed || trimmed.length < 2) {
+      errBox.textContent = 'Please enter a valid student name (at least 2 characters).';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    const enteredPin = pinInput?.value?.trim() || '';
+    if (enteredPin !== gameState.roomPin) {
+      errBox.textContent = 'Invalid Game PIN code. Please ask the host for the correct code.';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    playCorrectSound();
+
+    const playerId = currentPlayer?.id || `player_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const newPlayer = {
+      id: playerId,
+      name: trimmed,
+      branch: branchSelect.value,
+      score: currentPlayer?.score || 0,
+      answeredQuestions: currentPlayer?.answeredQuestions || {},
+      answeredCount: currentPlayer?.answeredCount || 0,
+      totalTimeTakenMs: currentPlayer?.totalTimeTakenMs || 0,
+      fastestCount: currentPlayer?.fastestCount || 0,
+      lastActive: Date.now()
+    };
+
+    pendingPlayer = newPlayer;
+    showRulesModal = true;
     renderApp();
   });
 }
@@ -511,7 +639,7 @@ function renderPlayerGameHTML() {
       </main>
 
       <footer class="py-2 border-t border-slate-800/80 text-center font-mono text-[11px] text-slate-500">
-        GDGoC IGC Speed Arena • Live Client Connected
+        GDGoC IGC Game ZOne
       </footer>
     </div>
   `;
@@ -556,7 +684,9 @@ function handlePlayerSubmitAnswer(optionIndex) {
     else playWrongSound();
   }
 
-  let pointsEarned = isCorrect ? 10 : 0;
+  const elapsedSec = deltaMs / 1000;
+  const remainingSec = Math.max(0, 10 - elapsedSec);
+  let pointsEarned = isCorrect ? Math.max(1, Math.round(remainingSec * 5)) : 0;
   let isFastest = false;
 
   // Fastest finger bonus check
