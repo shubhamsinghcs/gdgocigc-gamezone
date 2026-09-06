@@ -1,7 +1,9 @@
-import { Question } from '../types';
+/**
+ * js/questions.js
+ * 25-question JSON dataset array
+ */
 
-export const questionsData: Question[] = [
-  // 1-5: Latest Tech News (5 questions)
+export const questionsData = [
   {
     id: 1,
     category: 'Latest Tech News',
@@ -42,8 +44,6 @@ export const questionsData: Question[] = [
     correctIndex: 2,
     explanation: 'Microsoft Edge switched to the Chromium open-source base powered by the Blink rendering engine.'
   },
-
-  // 6-10: Emoji Language IDs (5 questions)
   {
     id: 6,
     category: 'Emoji Language IDs',
@@ -84,8 +84,6 @@ export const questionsData: Question[] = [
     correctIndex: 2,
     explanation: 'React uses the science atom symbol ⚛️ as its official emblem.'
   },
-
-  // 11-13: Tech Basics (3 questions)
   {
     id: 11,
     category: 'Tech Basics',
@@ -97,7 +95,7 @@ export const questionsData: Question[] = [
   {
     id: 12,
     category: 'Tech Basics',
-    question: 'What networking protocol resolves human-friendly URLs (e.g. clash.tech) to computer numerical IP addresses?',
+    question: 'What networking protocol resolves human-friendly URLs to computer numerical IP addresses?',
     options: ['DHCP', 'DNS', 'ARP', 'SNMP'],
     correctIndex: 1,
     explanation: 'DNS (Domain Name System) functions as the phonebook of the global Internet.'
@@ -110,11 +108,9 @@ export const questionsData: Question[] = [
     correctIndex: 3,
     explanation: 'Without randomized or median-of-three pivots, an already sorted array can degrade QuickSort to O(n²).'
   },
-
-  // 14-16: AI & Drone Tech (3 questions)
   {
     id: 14,
-    category: 'AI & Drone Tech',
+    category: 'AI & Deep Learning',
     question: 'Which deep learning architecture introduced Multi-Head Self-Attention in "Attention Is All You Need"?',
     options: ['Convolutional Neural Network (CNN)', 'Recurrent Neural Network (RNN)', 'Transformer', 'Boltzmann Machine'],
     correctIndex: 2,
@@ -122,7 +118,7 @@ export const questionsData: Question[] = [
   },
   {
     id: 15,
-    category: 'AI & Drone Tech',
+    category: 'Hardware & IoT',
     question: 'Which sensor fires rapid laser pulses to calculate distance and produce dense 3D point cloud maps on drones?',
     options: ['LiDAR', 'Sonar', 'Barometer', 'Magnetometer'],
     correctIndex: 0,
@@ -130,7 +126,7 @@ export const questionsData: Question[] = [
   },
   {
     id: 16,
-    category: 'AI & Drone Tech',
+    category: 'AI Alignment',
     question: 'In modern generative AI post-training alignment, what does the acronym "RLHF" stand for?',
     options: [
       'Recursive Learning for High Frequency',
@@ -140,5 +136,89 @@ export const questionsData: Question[] = [
     ],
     correctIndex: 1,
     explanation: 'RLHF aligns LLMs with human preference by training reward models on human judgments.'
+  },
+  {
+    id: 17,
+    category: 'Cloud & DevOps',
+    question: 'Which CNCF container orchestration system has become the industry standard for deploying containerized clusters?',
+    options: ['Docker Swarm', 'Kubernetes', 'Apache Mesos', 'Nomad'],
+    correctIndex: 1,
+    explanation: 'Kubernetes automates container deployment, scaling, and operations across cluster nodes.'
+  },
+  {
+    id: 18,
+    category: 'Cybersecurity',
+    question: 'What cryptographic protocol secures communications over computer networks, succeeding SSL?',
+    options: ['TLS (Transport Layer Security)', 'FTP Secure', 'SSH Tunnel', 'IPSec Cipher'],
+    correctIndex: 0,
+    explanation: 'TLS secures web traffic (HTTPS), providing encryption, authentication, and data integrity.'
+  },
+  {
+    id: 19,
+    category: 'Database Systems',
+    question: 'Which database design principle guarantees ACID compliance in relational database management systems?',
+    options: ['Eventual Consistency', 'Transactions', 'Sharding', 'NoSQL Document Store'],
+    correctIndex: 1,
+    explanation: 'Transactions ensure Atomicity, Consistency, Isolation, and Durability in relational databases.'
+  },
+  {
+    id: 20,
+    category: 'Web Standards',
+    question: 'What markup language structure is used by browsers to represent the page document object hierarchy?',
+    options: ['DOM (Document Object Model)', 'XML Stream', 'JSON Tree', 'JSX Virtual Node'],
+    correctIndex: 0,
+    explanation: 'The DOM represents the page so that programs can change document structure, style, and content.'
+  },
+  {
+    id: 21,
+    category: 'Mobile Engineering',
+    question: 'Which cross-platform mobile app framework was created by Google using the Dart programming language?',
+    options: ['React Native', 'Flutter', 'Xamarin', 'Ionic'],
+    correctIndex: 1,
+    explanation: 'Flutter allows developers to build natively compiled applications for mobile, web, and desktop from a single codebase.'
+  },
+  {
+    id: 22,
+    category: 'Version Control',
+    question: 'Which Git command downloads a repository from a remote source along with all its history and branches?',
+    options: ['git push', 'git commit', 'git clone', 'git fetch'],
+    correctIndex: 2,
+    explanation: 'git clone creates a local copy of a remote repository including all revision histories.'
+  },
+  {
+    id: 23,
+    category: 'Data Structures',
+    question: 'Which linear data structure operates on a Last-In, First-Out (LIFO) principle?',
+    options: ['Queue', 'Stack', 'Array', 'Linked List'],
+    correctIndex: 1,
+    explanation: 'A Stack pushes and pops elements from the same end, following Last-In, First-Out order.'
+  },
+  {
+    id: 24,
+    category: 'Operating Systems',
+    question: 'What core component of an operating system manages system hardware and process execution?',
+    options: ['Shell', 'Kernel', 'Daemon', 'Compiler'],
+    correctIndex: 1,
+    explanation: 'The kernel is the core central computer program that bridges applications and data processing at the hardware level.'
+  },
+  {
+    id: 25,
+    category: 'GDGoC Community',
+    question: 'What does GDGoC stand for in Google Developer communities worldwide?',
+    options: [
+      'Google Developer Group on Campus',
+      'Global Digital Growth of Code',
+      'Google Data General Operations Center',
+      'General Developer Guild of California'
+    ],
+    correctIndex: 0,
+    explanation: 'GDGoC stands for Google Developer Groups on Campus, fostering student developer innovation.'
   }
 ];
+
+export function getActiveQuestions(gameStateQuestions) {
+  if (gameStateQuestions && Array.isArray(gameStateQuestions) && gameStateQuestions.length > 0) {
+    return gameStateQuestions;
+  }
+  return questionsData;
+}
