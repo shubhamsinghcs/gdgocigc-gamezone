@@ -442,8 +442,12 @@ export function renderParticipantListUI(participantsList) {
   const participants = Array.isArray(participantsList) ? participantsList : Object.values(participantsList || {});
 
   const countText = `${participants.length} Connected`;
+  
   const countEl = document.getElementById('connectedCount');
   if (countEl) countEl.textContent = countText;
+
+  const hostBadgeEl = document.getElementById('hostConnectedBadge');
+  if (hostBadgeEl) hostBadgeEl.textContent = countText;
 
   const badgeEl = document.getElementById('participantsBadge');
   if (badgeEl) badgeEl.textContent = `${participants.length} In Lobby`;
@@ -451,19 +455,27 @@ export function renderParticipantListUI(participantsList) {
   const rightCountEl = document.getElementById('rightConnectedCount');
   if (rightCountEl) rightCountEl.textContent = countText;
 
+  const renderChips = (emptyText) => {
+    if (participants.length === 0) {
+      return `<div class="w-full text-center py-6 text-slate-500 font-mono text-xs italic">${emptyText}</div>`;
+    }
+    return participants.map((p, idx) => `
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1E293B] border border-slate-700/60 text-slate-200 font-sans text-xs font-semibold shadow-sm animate-popIn">
+        <span class="w-2 h-2 rounded-full bg-[#34A853] shrink-0"></span>
+        <span class="text-white truncate max-w-[130px]">${escapeHtml(p.name || 'Anonymous')}</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#4285F4]/10 text-[#4285F4] border border-[#4285F4]/20 font-mono">${escapeHtml(p.branch || 'CSE')}</span>
+      </div>
+    `).join('');
+  };
+
   const listEl = document.getElementById('joinedParticipantsList');
   if (listEl) {
-    if (participants.length === 0) {
-      listEl.innerHTML = `<span class="text-xs font-mono text-slate-500 italic">Waiting for participants to enter PIN ${escapeHtml(gameState.roomPin || '----')}...</span>`;
-    } else {
-      listEl.innerHTML = participants.map(p => `
-        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 font-mono text-xs shadow-sm">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="font-bold text-white">${escapeHtml(p.name || 'Anonymous')}</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">${escapeHtml(p.branch || 'CSE')}</span>
-        </div>
-      `).join('');
-    }
+    listEl.innerHTML = renderChips(`Waiting for participants to enter PIN ${escapeHtml(gameState.roomPin || '----')}...`);
+  }
+
+  const hostGridEl = document.getElementById('hostPlayerGrid');
+  if (hostGridEl) {
+    hostGridEl.innerHTML = renderChips(`Waiting for participants to enter PIN ${escapeHtml(gameState.roomPin || '----')}...`);
   }
 
   const rightListEl = document.getElementById('rightJoinedParticipantsList');
@@ -480,11 +492,11 @@ export function renderParticipantListUI(participantsList) {
           <div class="flex items-center gap-2.5 truncate">
             <span class="w-5 h-5 rounded-md bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 font-bold shrink-0">${idx + 1}</span>
             <span class="font-bold text-white truncate">${escapeHtml(p.name)}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">${escapeHtml(p.branch || 'CSE')}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#4285F4]/10 text-[#4285F4] border border-[#4285F4]/20">${escapeHtml(p.branch || 'CSE')}</span>
           </div>
           <div class="flex items-center gap-2 shrink-0 ml-2">
-            <span class="text-emerald-400 font-bold">${p.score || 0} pts</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="text-[#34A853] font-bold">${p.score || 0} pts</span>
+            <span class="w-2 h-2 rounded-full bg-[#34A853]"></span>
           </div>
         </div>
       `).join('');
@@ -1954,42 +1966,57 @@ function renderPlayerGameHTML() {
     const myRankIndex = sorted.findIndex(p => p.id === currentPlayer.id);
     const myRankNum = myRankIndex >= 0 ? myRankIndex + 1 : null;
     let myRankBadge = '--';
-    let myRankIcon = '🏆';
+    let myRankIcon = `
+      <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300">
+        <svg class="w-5 h-5 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+      </div>
+    `;
     if (myRankNum === 1) {
       myRankBadge = '#1';
-      myRankIcon = '👑';
+      myRankIcon = `
+        <div class="w-10 h-10 rounded-xl bg-[#FBBC05]/20 border border-[#FBBC05]/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+        </div>
+      `;
     } else if (myRankNum === 2) {
       myRankBadge = '#2';
-      myRankIcon = '🥈';
+      myRankIcon = `
+        <div class="w-10 h-10 rounded-xl bg-[#4285F4]/20 border border-[#4285F4]/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#4285F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+        </div>
+      `;
     } else if (myRankNum === 3) {
       myRankBadge = '#3';
-      myRankIcon = '🥉';
+      myRankIcon = `
+        <div class="w-10 h-10 rounded-xl bg-[#34A853]/20 border border-[#34A853]/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-[#34A853]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+        </div>
+      `;
     } else if (myRankNum !== null) {
       myRankBadge = `#${myRankNum}`;
-      myRankIcon = '🏆';
     }
 
     leaderboardContent = `
-      <div class="material-card rounded-2xl p-4 bg-gradient-to-r from-blue-950/50 to-purple-950/50 border border-blue-500/40 text-center space-y-2">
+      <div class="material-card rounded-2xl p-4 border border-[#4285F4]/40 bg-[#161F30] text-center space-y-2">
         <div class="flex items-center justify-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-          <span id="leaderboard-auto-timer" class="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">Advancing in 3s...</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FBBC05] animate-ping"></span>
+          <span id="leaderboard-auto-timer" class="text-xs font-mono font-bold text-[#FBBC05] uppercase tracking-wider">Advancing in 3s...</span>
         </div>
         <h2 class="text-xl font-bold text-white font-display">Intermittent Leaderboard</h2>
         <p class="text-xs text-slate-400 font-mono">Scores updated after Question ${qIndex + 1}</p>
       </div>
 
-      <div class="material-card rounded-2xl p-4 flex items-center justify-between border border-cyan-500/30 bg-cyan-950/20 font-mono">
+      <div class="material-card rounded-2xl p-4 flex items-center justify-between border border-cyan-500/30 bg-[#161F30] font-mono">
         <div>
           <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Your Current Standing</span>
           <span class="text-base font-bold text-white">${escapeHtml(currentPlayer.name)}</span>
           <span class="text-xs text-slate-400 block font-sans">${escapeHtml(currentPlayer.branch)}</span>
         </div>
         <div class="flex items-center gap-3">
-          <span class="text-3xl">${myRankIcon}</span>
+          ${myRankIcon}
           <div class="text-right">
             <span class="text-xl font-black text-cyan-400 block">${myRankBadge}</span>
-            <span class="text-xs text-emerald-400 font-bold block">${currentPlayer.score || 0} pts</span>
+            <span class="text-xs text-[#34A853] font-bold block">${currentPlayer.score || 0} pts</span>
           </div>
         </div>
       </div>
@@ -1999,7 +2026,7 @@ function renderPlayerGameHTML() {
           <h3 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Current Top 5 Participants</h3>
           <span class="text-[11px] font-mono text-cyan-400">${Object.keys(players).length} Total</span>
         </div>
-        ${renderLeaderboardHTML(players, 5, true)}
+        ${renderLeaderboardHTML(players, 5, false)}
       </div>
     `;
   }
@@ -2018,51 +2045,57 @@ function renderPlayerGameHTML() {
     finishedContent = `
       <div class="space-y-5">
         <div class="space-y-1 text-center">
-          <span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">Tournament Complete</span>
+          <span class="text-xs font-mono uppercase tracking-widest text-[#FBBC05] font-bold px-3 py-1 rounded-full bg-[#FBBC05]/10 border border-[#FBBC05]/30">Tournament Complete</span>
           <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-display">Grand Finale Winner Podium</h2>
         </div>
 
         <!-- Winner Podium Grid -->
         <div class="grid grid-cols-3 gap-2 sm:gap-3 items-end pt-2 text-center font-mono">
           <!-- 2nd Place -->
-          <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-400/40 space-y-1 order-1">
-            <span class="text-2xl sm:text-3xl block">🥈</span>
-            <span class="text-[10px] text-slate-400 font-bold block">2ND PLACE</span>
+          <div class="p-3 rounded-2xl bg-[#161F30] border border-[#4285F4]/40 space-y-1.5 order-1">
+            <div class="w-8 h-8 mx-auto rounded-lg bg-[#4285F4]/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#4285F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            </div>
+            <span class="text-[10px] text-slate-300 font-bold block">2ND PLACE</span>
             <span class="text-xs sm:text-sm font-bold text-white block truncate">${top2 ? escapeHtml(top2.name) : '---'}</span>
-            <span class="text-[10px] text-cyan-400 block">${top2 ? escapeHtml(top2.branch) : ''}</span>
-            <span class="text-xs font-extrabold text-emerald-400 block">${top2 ? (top2.score || 0) : 0} pts</span>
+            <span class="text-[10px] text-[#4285F4] block">${top2 ? escapeHtml(top2.branch) : ''}</span>
+            <span class="text-xs font-extrabold text-[#34A853] block">${top2 ? (top2.score || 0) : 0} pts</span>
           </div>
 
           <!-- 1st Place (Champion) -->
-          <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-950/40 border-2 border-amber-400/70 space-y-1.5 order-2 transform -translate-y-2 shadow-[0_0_24px_rgba(251,191,36,0.25)]">
-            <span class="text-3xl sm:text-4xl block">👑</span>
-            <span class="text-[10px] text-amber-300 font-black tracking-wider block">CHAMPION</span>
+          <div class="p-3.5 sm:p-4 rounded-2xl bg-[#161F30] border-2 border-[#FBBC05] space-y-2 order-2 transform -translate-y-2 shadow-[0_0_24px_rgba(251,188,5,0.25)]">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-[#FBBC05]/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+            </div>
+            <span class="text-[10px] text-[#FBBC05] font-black tracking-wider block">CHAMPION</span>
             <span class="text-sm sm:text-base font-black text-amber-200 block truncate">${top1 ? escapeHtml(top1.name) : '---'}</span>
-            <span class="text-[10px] text-amber-400 block">${top1 ? escapeHtml(top1.branch) : ''}</span>
-            <span class="text-sm font-black text-emerald-400 block">${top1 ? (top1.score || 0) : 0} pts</span>
+            <span class="text-[10px] text-[#FBBC05] block">${top1 ? escapeHtml(top1.branch) : ''}</span>
+            <span class="text-sm font-black text-[#34A853] block">${top1 ? (top1.score || 0) : 0} pts</span>
           </div>
 
           <!-- 3rd Place -->
-          <div class="p-3 rounded-2xl bg-slate-900/90 border border-amber-700/40 space-y-1 order-3">
-            <span class="text-2xl sm:text-3xl block">🥉</span>
-            <span class="text-[10px] text-amber-600 font-bold block">3RD PLACE</span>
+          <div class="p-3 rounded-2xl bg-[#161F30] border border-[#34A853]/40 space-y-1.5 order-3">
+            <div class="w-8 h-8 mx-auto rounded-lg bg-[#34A853]/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#34A853]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            </div>
+            <span class="text-[10px] text-slate-300 font-bold block">3RD PLACE</span>
             <span class="text-xs sm:text-sm font-bold text-white block truncate">${top3 ? escapeHtml(top3.name) : '---'}</span>
-            <span class="text-[10px] text-cyan-400 block">${top3 ? escapeHtml(top3.branch) : ''}</span>
-            <span class="text-xs font-extrabold text-emerald-400 block">${top3 ? (top3.score || 0) : 0} pts</span>
+            <span class="text-[10px] text-[#34A853] block">${top3 ? escapeHtml(top3.branch) : ''}</span>
+            <span class="text-xs font-extrabold text-[#34A853] block">${top3 ? (top3.score || 0) : 0} pts</span>
           </div>
         </div>
 
         <!-- Participant Personal Standing Card -->
-        <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-left space-y-2 font-mono text-xs">
-          <div class="flex justify-between"><span class="text-slate-400">Your Final Rank:</span><span class="text-amber-400 font-bold text-sm">${myRankBadge}</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Total Score:</span><span class="text-emerald-400 font-extrabold text-sm">${currentPlayer.score || 0} PTS</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Fastest Finger Awards:</span><span class="text-cyan-400 font-bold">${currentPlayer.fastestCount || 0}</span></div>
+        <div class="p-4 rounded-2xl bg-[#161F30] border border-slate-800 text-left space-y-2 font-mono text-xs">
+          <div class="flex justify-between"><span class="text-slate-400">Your Final Rank:</span><span class="text-[#FBBC05] font-bold text-sm">${myRankBadge}</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Total Score:</span><span class="text-[#34A853] font-extrabold text-sm">${currentPlayer.score || 0} PTS</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Fastest Finger Awards:</span><span class="text-[#4285F4] font-bold">${currentPlayer.fastestCount || 0}</span></div>
         </div>
 
         <!-- Full Top 5 Standings -->
         <div class="text-left space-y-2 pt-2 border-t border-slate-800">
           <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">Top 5 Final Standings</span>
-          ${renderLeaderboardHTML(players, 5, true)}
+          ${renderLeaderboardHTML(players, 5, false)}
         </div>
       </div>
     `;
@@ -2288,7 +2321,7 @@ function handlePlayerSubmitAnswer(optionIndex) {
   renderApp();
 }
 
-// ==========================================
+/// ==========================================
 // VIEW 4: PRESENTER BIG SCREEN & HOST CONTROLS
 // ==========================================
 function renderPresenterHTML() {
@@ -2303,27 +2336,37 @@ function renderPresenterHTML() {
   const currentRemainingSec = getRemainingTimeSubseconds(gameState.questionStartTime);
   const answeredCount = currentQ ? Object.values(players).filter(p => p.answeredQuestions && p.answeredQuestions[qIndex]).length : 0;
 
-  // Streamlined PIN Display Bar with Real-time Sync Status
+  // Real-time Sync Status Indicator
   const syncStatusHtml = isFirebaseConnected
-    ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-semibold flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Cloud Sync</span>`
-    : `<span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 font-mono text-[11px] font-semibold flex items-center gap-1.5" title="Operating with zero-latency multi-tab BroadcastChannel sync"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>Multi-Tab Sync</span>`;
+    ? `<span class="px-2.5 py-1 rounded-full bg-[#34A853]/15 border border-[#34A853]/30 text-[#34A853] font-mono text-[11px] font-semibold flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span>Cloud Sync</span>`
+    : `<span class="px-2.5 py-1 rounded-full bg-[#4285F4]/15 border border-[#4285F4]/30 text-[#4285F4] font-mono text-[11px] font-semibold flex items-center gap-1.5" title="Operating with high-speed multi-tab BroadcastChannel sync"><span class="w-1.5 h-1.5 rounded-full bg-[#4285F4]"></span>Local Fast Sync</span>`;
 
-  const pinDisplayBarHtml = `
-    <div class="material-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-700 bg-slate-900/90 shadow-xl mb-6">
-      <div class="flex items-center gap-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-semibold">GAME PIN:</span>
-        <span class="font-mono text-3xl sm:text-4xl font-extrabold tracking-[0.25em] text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.3)]">${escapeHtml(gameState.roomPin || '----')}</span>
-        ${syncStatusHtml}
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btn-copy-pin" class="px-4 py-2.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/40 text-blue-300 font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer transition">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          <span id="btn-copy-pin-label">Copy PIN</span>
-        </button>
-        <button id="btn-new-pin" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer transition" title="Generate New PIN">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-          <span>New PIN</span>
-        </button>
+  // Hero Section: Auditorium PIN Banner
+  const heroPinBannerHtml = `
+    <div class="host-glass-card rounded-2xl relative overflow-hidden border border-white/10 bg-[#161F30] shadow-2xl mb-6">
+      <div class="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]"></div>
+      <div class="p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="text-center md:text-left space-y-1">
+          <div class="flex items-center justify-center md:justify-start gap-2">
+            <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-bold">JOIN AT INDOGLOBAL QUIZ ARENA</span>
+            ${syncStatusHtml}
+          </div>
+          <div class="flex items-center justify-center md:justify-start gap-4">
+            <span class="text-xs font-mono uppercase text-slate-400 font-semibold tracking-wider">GAME PIN:</span>
+            <span class="font-mono text-4xl sm:text-5xl md:text-6xl font-black tracking-[0.25em] text-white drop-shadow-[0_0_20px_rgba(66,133,244,0.3)]">${escapeHtml(gameState.roomPin || '----')}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="btn-copy-pin" class="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition active:scale-95 shadow-sm">
+            <svg class="w-4 h-4 text-[#4285F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span id="btn-copy-pin-label">Copy PIN</span>
+          </button>
+          <button id="btn-new-pin" class="px-4 py-2.5 rounded-full bg-[#1E293B] hover:bg-slate-700 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition active:scale-95 shadow-sm" title="Generate New PIN">
+            <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <span>New PIN</span>
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -2332,308 +2375,349 @@ function renderPresenterHTML() {
 
   if (isLobby) {
     mainStageHtml = `
-      <div class="material-card rounded-3xl p-8 md:p-12 text-center space-y-6 border border-slate-800 bg-slate-900/60 shadow-2xl">
-        <div class="space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-mono text-xs font-bold uppercase tracking-wider">
-            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-            <span>GDGoC Quiz Console</span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left Column: Live Player Wall -->
+        <div class="lg:col-span-7 host-glass-card rounded-3xl p-6 md:p-8 space-y-5 border border-white/10 bg-[#161F30] shadow-2xl">
+          <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#34A853] animate-pulse"></span>
+              <h2 class="text-lg md:text-xl font-extrabold text-white font-display tracking-tight uppercase">Joined Participants</h2>
+            </div>
+            <span id="hostConnectedBadge" class="px-3.5 py-1 rounded-full bg-[#34A853]/15 border border-[#34A853]/30 text-[#34A853] font-mono text-xs font-bold">${playerCount} Connected</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white font-display tracking-tight">Fastest Finger Arena</h1>
-          <p class="text-sm sm:text-base text-slate-400 font-mono max-w-lg mx-auto">
-            <span id="connectedCount" class="font-bold text-cyan-400">${playerCount} Connected</span> • ${activeQuestions.length} Questions Loaded
-          </p>
-        </div>
 
-        <div class="space-y-2 text-left max-w-md mx-auto pt-2">
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400 px-1">
-            <span class="font-bold uppercase tracking-wider">Joined Participants:</span>
-            <span class="text-emerald-400 font-semibold" id="participantsBadge">${playerCount} In Lobby</span>
-          </div>
-          <div id="joinedParticipantsList" class="flex flex-wrap gap-2 min-h-[48px] p-3 rounded-2xl bg-slate-950/80 border border-slate-800 items-center">
+          <!-- Dynamic Player Wall Grid -->
+          <div id="hostPlayerGrid" class="flex flex-wrap gap-2.5 min-h-[220px] p-4 rounded-2xl bg-[#0B0F17]/80 border border-white/5 items-start content-start max-h-[420px] overflow-y-auto custom-scrollbar">
             ${joinedPlayers.length === 0 ? `
-              <span class="text-xs font-mono text-slate-500 italic">Waiting for participants to enter PIN ${escapeHtml(gameState.roomPin || '----')}...</span>
+              <div class="w-full text-center py-12 space-y-3">
+                <svg class="w-10 h-10 text-slate-600 mx-auto animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <p class="text-sm font-mono text-slate-400">Waiting for participants to enter PIN <strong class="text-white font-black">${escapeHtml(gameState.roomPin || '----')}</strong>...</p>
+              </div>
             ` : joinedPlayers.map(p => `
-              <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 font-mono text-xs shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span class="font-bold text-white">${escapeHtml(p.name || 'Anonymous')}</span>
-                <span class="text-[10px] px-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">${escapeHtml(p.branch || 'CSE')}</span>
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1E293B] border border-slate-700/60 text-slate-200 font-sans text-xs font-semibold shadow-sm animate-popIn">
+                <span class="w-2 h-2 rounded-full bg-[#34A853] shrink-0"></span>
+                <span class="text-white truncate max-w-[130px]">${escapeHtml(p.name || 'Anonymous')}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#4285F4]/10 text-[#4285F4] border border-[#4285F4]/20 font-mono">${escapeHtml(p.branch || 'CSE')}</span>
               </div>
             `).join('')}
           </div>
+
+          <div class="flex items-center justify-between text-xs font-mono text-slate-400 pt-2 border-t border-white/5">
+            <span>Room PIN: <strong class="text-white">${escapeHtml(gameState.roomPin || '----')}</strong></span>
+            <span>${activeQuestions.length} Questions in Deck</span>
+          </div>
         </div>
 
-        <div class="pt-4 max-w-sm mx-auto">
-          <button
-            id="btn-start-quiz"
-            class="w-full py-4 px-8 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] active:bg-[#2A56C6] text-white font-bold font-mono text-base tracking-wider uppercase transition shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2.5 cursor-pointer"
-          >
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            <span>START QUIZ</span>
-          </button>
+        <!-- Right Column: Master Launch Deck -->
+        <div class="lg:col-span-5 host-glass-card rounded-3xl p-6 md:p-8 space-y-6 border border-white/10 bg-[#161F30] shadow-2xl flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4285F4]/10 border border-[#4285F4]/30 text-[#4285F4] font-mono text-xs font-bold uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-[#4285F4]"></span>
+              <span>Auditorium Control Deck</span>
+            </div>
+            <h3 class="text-2xl font-black text-white font-display">Ready to Start Session?</h3>
+            <p class="text-sm text-slate-300 font-sans leading-relaxed">
+              Once you start the quiz, Question 1 will simultaneously broadcast to all connected participant screens with zero latency.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-[#0B0F17]/80 border border-white/5 space-y-2 font-mono text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Connected Players:</span>
+              <span id="connectedCount" class="font-bold text-[#34A853]">${playerCount} Connected</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Question Pack:</span>
+              <span class="font-bold text-white">${activeQuestions.length} Items</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Timer per Item:</span>
+              <span class="font-bold text-[#FBBC05]">10.0 Seconds</span>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <button
+              id="btn-start-quiz"
+              class="w-full py-5 px-8 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] active:bg-[#2A56C6] text-white font-bold font-sans text-xl tracking-wider uppercase transition-all duration-200 shadow-[0_0_30px_rgba(66,133,244,0.35)] hover:shadow-[0_0_40px_rgba(66,133,244,0.5)] transform hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
+            >
+              <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span>START QUIZ</span>
+            </button>
+
+            <button id="btn-reset-room" class="w-full py-2.5 rounded-xl bg-[#EA4335]/15 hover:bg-[#EA4335]/25 border border-[#EA4335]/30 text-[#EA4335] font-mono text-xs font-bold cursor-pointer transition">
+              Reset Session Room
+            </button>
+          </div>
         </div>
       </div>
     `;
   } else if (isLeaderboardScreen) {
     mainStageHtml = `
-      <div id="viewLeaderboard" class="material-card rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-2xl border border-slate-800 bg-slate-900/70">
+      <div id="viewLeaderboard" class="host-glass-card rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-2xl border border-white/10 bg-[#161F30]">
         <div class="flex items-center justify-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-          <span id="leaderboard-auto-timer" class="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest">Advancing in 3s...</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FBBC05] animate-ping"></span>
+          <span id="leaderboard-auto-timer" class="text-xs font-mono font-bold text-[#FBBC05] uppercase tracking-widest">Advancing in 3s...</span>
         </div>
         <div class="space-y-1">
           <h2 class="text-2xl sm:text-4xl font-extrabold text-white font-display uppercase tracking-tight">Leaderboard Standings</h2>
           <p class="text-xs sm:text-sm text-slate-400 font-mono">Scores after Question ${qIndex + 1} of ${activeQuestions.length}</p>
         </div>
         <div class="max-w-2xl mx-auto space-y-2 text-left">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800 font-mono text-xs text-slate-400">
+          <div class="flex items-center justify-between pb-2 border-b border-white/10 font-mono text-xs text-slate-400">
             <span>Top 5 Participants</span>
             <span>${playerCount} Active</span>
           </div>
-          ${renderLeaderboardHTML(players, 5, true)}
+          ${renderLeaderboardHTML(players, 5, false)}
         </div>
         <div class="pt-2">
-          <button id="btn-force-next-now" class="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider cursor-pointer transition">
+          <button id="btn-force-next-now" class="px-8 py-3.5 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-mono font-bold text-xs uppercase tracking-wider cursor-pointer transition shadow-lg shadow-[#4285F4]/30">
             Advance Immediately ➔
           </button>
         </div>
       </div>
     `;
   } else if (!isFinalScreen && currentQ) {
+    // Kahoot Style Shapes and Google Quad Accent Colors
+    const cardThemes = [
+      { letter: 'A', bg: 'bg-[#EA4335]/15 hover:bg-[#EA4335]/25 border-[#EA4335]/40 text-[#EA4335]', badge: 'bg-[#EA4335] text-white', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 2 22 22 22"></polygon></svg>` },
+      { letter: 'B', bg: 'bg-[#4285F4]/15 hover:bg-[#4285F4]/25 border-[#4285F4]/40 text-[#4285F4]', badge: 'bg-[#4285F4] text-white', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 22 12 12 22 2 12"></polygon></svg>` },
+      { letter: 'C', bg: 'bg-[#FBBC05]/15 hover:bg-[#FBBC05]/25 border-[#FBBC05]/40 text-[#FBBC05]', badge: 'bg-[#FBBC05] text-slate-950', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>` },
+      { letter: 'D', bg: 'bg-[#34A853]/15 hover:bg-[#34A853]/25 border-[#34A853]/40 text-[#34A853]', badge: 'bg-[#34A853] text-white', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>` }
+    ];
+
     mainStageHtml = `
-      <div class="material-card rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 border border-slate-800 bg-slate-900/60">
-        <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="host-glass-card rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 border border-white/10 bg-[#161F30]">
+        <!-- Active Question Header & Meter -->
+        <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center gap-3">
-            <span class="px-3 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 font-mono text-sm font-bold">Q${qIndex + 1} / ${activeQuestions.length}</span>
-            <span class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-semibold">${escapeHtml(currentQ.category)}</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-[#4285F4]/20 border border-[#4285F4]/40 text-[#4285F4] font-mono text-sm font-bold">Question ${qIndex + 1} of ${activeQuestions.length}</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-[#FBBC05]/10 border border-[#FBBC05]/30 text-[#FBBC05] font-mono text-xs font-bold uppercase">${escapeHtml(currentQ.category)}</span>
           </div>
+
           <div class="flex items-center gap-3 font-mono text-xs">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 font-bold">
-              <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              <span>Responses: <strong class="text-white">${answeredCount} / ${playerCount}</strong> submitted</span>
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-bold">
+              <span class="w-2 h-2 rounded-full bg-[#34A853] animate-pulse"></span>
+              <span>Responses: <strong class="text-white text-sm">${answeredCount}</strong> / ${playerCount}</span>
             </div>
-            <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
-              <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span id="seconds-left-display" class="text-sm font-extrabold text-cyan-400">${currentRemainingSec.toFixed(1)}s</span>
+            <div class="flex items-center gap-2 bg-[#0B0F17] border border-white/10 px-3.5 py-2 rounded-xl">
+              <svg class="w-4 h-4 text-[#EA4335]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span id="seconds-left-display" class="text-base font-extrabold text-[#4285F4]">${currentRemainingSec.toFixed(1)}s</span>
             </div>
           </div>
         </div>
 
-        <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-          <div id="timer-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-amber-400 transition-all duration-100" style="width: ${(currentRemainingSec / 10) * 100}%"></div>
+        <!-- Timer Progress Bar -->
+        <div class="w-full h-2.5 rounded-full bg-[#0B0F17] overflow-hidden border border-white/10">
+          <div id="timer-progress-bar" class="h-full bg-gradient-to-r from-[#4285F4] via-[#FBBC05] to-[#EA4335] transition-all duration-100" style="width: ${(currentRemainingSec / 10) * 100}%"></div>
         </div>
 
-        <h2 class="text-xl md:text-3xl font-bold text-white leading-snug font-display">${escapeHtml(currentQ.question)}</h2>
+        <!-- Question Text -->
+        <h2 class="text-2xl md:text-3xl font-extrabold text-white leading-snug font-display">${escapeHtml(currentQ.question)}</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <!-- 4 Option Cards in Kahoot Style -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           ${currentQ.options.map((opt, idx) => {
-            let optStyle = 'bg-slate-950/80 border-slate-800 text-slate-200';
+            const theme = cardThemes[idx] || cardThemes[0];
             const isCorrect = idx === currentQ.correctIndex;
+            let cardClasses = `p-5 rounded-2xl border font-sans text-base font-semibold flex items-center justify-between transition-all ${theme.bg}`;
             if (gameState.showAnswer) {
-              if (isCorrect) optStyle = 'bg-emerald-950/80 border-emerald-500 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.3)]';
-              else optStyle = 'bg-slate-950/40 border-slate-900 text-slate-500 opacity-50';
+              if (isCorrect) {
+                cardClasses = 'p-5 rounded-2xl border-2 border-[#34A853] bg-[#34A853]/25 text-white shadow-[0_0_30px_rgba(52,168,83,0.4)]';
+              } else {
+                cardClasses = 'p-5 rounded-2xl border border-white/5 bg-[#0B0F17]/40 text-slate-500 opacity-40';
+              }
             }
-            const letter = ['A', 'B', 'C', 'D'][idx];
+
             return `
-              <div class="p-4 rounded-2xl border font-mono text-sm flex items-center justify-between ${optStyle}">
-                <div class="flex items-center gap-3">
-                  <span class="w-7 h-7 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center font-bold text-xs shrink-0">${letter}</span>
-                  <span class="font-sans font-medium text-base">${escapeHtml(opt)}</span>
+              <div class="${cardClasses}">
+                <div class="flex items-center gap-3.5">
+                  <span class="w-9 h-9 rounded-xl ${theme.badge} flex items-center justify-center font-black text-sm shrink-0 shadow-sm">${theme.letter}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-white/80 shrink-0">${theme.icon}</span>
+                    <span class="text-white text-base md:text-lg">${escapeHtml(opt)}</span>
+                  </div>
                 </div>
-                ${gameState.showAnswer && isCorrect ? `<span class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold font-mono">Correct</span>` : ''}
+                ${gameState.showAnswer && isCorrect ? `
+                  <span class="px-3 py-1 rounded-full bg-[#34A853] text-white font-mono text-xs font-bold flex items-center gap-1 shadow-sm">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Correct
+                  </span>
+                ` : ''}
               </div>
             `;
           }).join('')}
         </div>
 
+        <!-- Explanation if revealed -->
         ${gameState.showAnswer && currentQ.explanation ? `
-          <div class="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/40 text-xs md:text-sm text-cyan-200 font-mono leading-relaxed">
-            <span class="font-bold text-cyan-400 block mb-1 uppercase tracking-wider">Host Explanation:</span>
+          <div class="p-4 rounded-2xl bg-[#4285F4]/10 border border-[#4285F4]/30 text-sm text-slate-200 font-sans leading-relaxed">
+            <span class="font-bold text-[#4285F4] block mb-1 uppercase tracking-wider font-mono text-xs">Host Explanation:</span>
             ${escapeHtml(currentQ.explanation)}
           </div>
         ` : ''}
 
-        <div class="pt-4 border-t border-slate-800 flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <button id="btn-toggle-answer" class="px-4 py-2.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer ${gameState.showAnswer ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-slate-800 border-slate-700 text-slate-300'}">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <!-- Override Controls Deck -->
+        <div class="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-2.5">
+            <button id="btn-toggle-answer" class="px-4 py-2.5 rounded-xl border font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition ${gameState.showAnswer ? 'bg-[#FBBC05]/20 border-[#FBBC05]/50 text-[#FBBC05]' : 'bg-white/5 border-white/10 text-slate-200 hover:bg-white/10'}">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               <span>${gameState.showAnswer ? 'Hide Answer' : 'Reveal Answer'}</span>
             </button>
-            <button id="btn-restart-timer" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <button id="btn-restart-timer" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
               <span>Reset Timer</span>
             </button>
           </div>
-          <div class="flex items-center gap-2">
-            ${qIndex > 0 ? `<button id="btn-prev-q" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-mono text-xs font-bold cursor-pointer">← Previous</button>` : ''}
-            <button id="btn-next-q" class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs font-extrabold cursor-pointer transition">Leaderboard ➔</button>
+          <div class="flex items-center gap-2.5">
+            ${qIndex > 0 ? `<button id="btn-prev-q" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-mono text-xs font-bold cursor-pointer transition">← Previous</button>` : ''}
+            <button id="btn-next-q" class="px-6 py-2.5 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-mono text-xs font-extrabold cursor-pointer transition shadow-lg shadow-[#4285F4]/30">Leaderboard ➔</button>
           </div>
         </div>
       </div>
     `;
   } else {
+    // Grand Finale Winner Podium
     const sorted = sortPlayers(players);
     const top1 = sorted[0];
     const top2 = sorted[1];
     const top3 = sorted[2];
 
     mainStageHtml = `
-      <div class="material-card rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-2xl border border-slate-800 bg-slate-900/60">
+      <div class="host-glass-card rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-2xl border border-white/10 bg-[#161F30]">
         <div class="space-y-1">
-          <span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">Tournament Concluded</span>
-          <h1 class="text-3xl md:text-5xl font-extrabold text-white font-display uppercase tracking-tight">Grand Finale Winner Podium</h1>
+          <span class="text-xs font-mono uppercase tracking-widest text-[#FBBC05] font-bold px-3.5 py-1 rounded-full bg-[#FBBC05]/10 border border-[#FBBC05]/30">Tournament Complete</span>
+          <h1 class="text-3xl md:text-5xl font-black text-white font-display uppercase tracking-tight">Grand Finale Winner Podium</h1>
           <p class="text-xs sm:text-sm text-slate-400 font-mono">${playerCount} Total Combatants</p>
         </div>
 
-        <!-- Podium Top 3 Grid -->
-        <div class="grid grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto items-end pt-3 text-center font-mono">
+        <!-- Winner Podium Grid -->
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 max-w-2xl mx-auto items-end pt-4 text-center font-mono">
           <!-- 2nd Place -->
-          <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-400/40 space-y-1.5 order-1">
-            <span class="text-3xl sm:text-4xl block">🥈</span>
+          <div class="p-4 rounded-2xl bg-[#0B0F17] border border-[#4285F4]/40 space-y-2 order-1">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-[#4285F4]/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#4285F4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            </div>
             <span class="text-xs text-slate-300 font-bold block">2ND PLACE</span>
             <span class="text-sm sm:text-base font-bold text-white block truncate">${top2 ? escapeHtml(top2.name) : '---'}</span>
-            <span class="text-xs text-cyan-400 block">${top2 ? escapeHtml(top2.branch) : ''}</span>
-            <span class="text-sm font-extrabold text-emerald-400 block">${top2 ? (top2.score || 0) : 0} pts</span>
+            <span class="text-xs text-[#4285F4] block">${top2 ? escapeHtml(top2.branch) : ''}</span>
+            <span class="text-sm font-extrabold text-[#34A853] block">${top2 ? (top2.score || 0) : 0} pts</span>
           </div>
 
           <!-- 1st Place (Champion) -->
-          <div class="p-5 sm:p-6 rounded-2xl bg-amber-950/40 border-2 border-amber-400/70 space-y-2 order-2 transform -translate-y-3 shadow-[0_0_30px_rgba(251,191,36,0.3)]">
-            <span class="text-4xl sm:text-5xl block">👑</span>
-            <span class="text-xs text-amber-300 font-black tracking-wider block">CHAMPION</span>
+          <div class="p-5 sm:p-6 rounded-2xl bg-[#0B0F17] border-2 border-[#FBBC05] space-y-2.5 order-2 transform -translate-y-4 shadow-[0_0_35px_rgba(251,188,5,0.3)]">
+            <div class="w-12 h-12 mx-auto rounded-xl bg-[#FBBC05]/20 flex items-center justify-center">
+              <svg class="w-8 h-8 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h10c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-2c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+            </div>
+            <span class="text-xs text-[#FBBC05] font-black tracking-wider block">CHAMPION</span>
             <span class="text-base sm:text-lg font-black text-amber-200 block truncate">${top1 ? escapeHtml(top1.name) : '---'}</span>
-            <span class="text-xs text-amber-400 block">${top1 ? escapeHtml(top1.branch) : ''}</span>
-            <span class="text-base font-black text-emerald-400 block">${top1 ? (top1.score || 0) : 0} pts</span>
+            <span class="text-xs text-[#FBBC05] block">${top1 ? escapeHtml(top1.branch) : ''}</span>
+            <span class="text-base font-black text-[#34A853] block">${top1 ? (top1.score || 0) : 0} pts</span>
           </div>
 
           <!-- 3rd Place -->
-          <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-700/40 space-y-1.5 order-3">
-            <span class="text-3xl sm:text-4xl block">🥉</span>
-            <span class="text-xs text-amber-600 font-bold block">3RD PLACE</span>
+          <div class="p-4 rounded-2xl bg-[#0B0F17] border border-[#34A853]/40 space-y-2 order-3">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-[#34A853]/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-[#34A853]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            </div>
+            <span class="text-xs text-slate-300 font-bold block">3RD PLACE</span>
             <span class="text-sm sm:text-base font-bold text-white block truncate">${top3 ? escapeHtml(top3.name) : '---'}</span>
-            <span class="text-xs text-cyan-400 block">${top3 ? escapeHtml(top3.branch) : ''}</span>
-            <span class="text-sm font-extrabold text-emerald-400 block">${top3 ? (top3.score || 0) : 0} pts</span>
+            <span class="text-xs text-[#34A853] block">${top3 ? escapeHtml(top3.branch) : ''}</span>
+            <span class="text-sm font-extrabold text-[#34A853] block">${top3 ? (top3.score || 0) : 0} pts</span>
           </div>
         </div>
 
         <!-- Top 5 List -->
-        <div class="max-w-2xl mx-auto space-y-2 text-left pt-4 border-t border-slate-800">
+        <div class="max-w-2xl mx-auto space-y-2 text-left pt-4 border-t border-white/10">
           <div class="flex items-center justify-between pb-1 font-mono text-xs text-slate-400">
             <span>Top 5 Rankings</span>
             <span>Speed Tie-Breakers Applied</span>
           </div>
-          ${renderLeaderboardHTML(players, 5, true)}
+          ${renderLeaderboardHTML(players, 5, false)}
         </div>
 
         <div class="pt-2">
-          <button id="btn-restart-tournament" class="px-8 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-bold text-sm cursor-pointer transition uppercase tracking-wider">Restart Tournament</button>
+          <button id="btn-restart-tournament" class="px-8 py-4 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-mono font-bold text-sm cursor-pointer transition uppercase tracking-wider shadow-lg shadow-[#4285F4]/30">
+            Restart Tournament
+          </button>
         </div>
       </div>
     `;
   }
 
-  // Right-side: Joined Participants live feed
-  const participantsFeedHtml = `
-    <div class="material-card rounded-3xl p-6 shadow-2xl space-y-4 border border-slate-800 bg-slate-900/70">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <h3 class="text-base sm:text-lg font-bold text-white font-display">Joined Participants</h3>
-        </div>
-        <span id="rightConnectedCount" class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-bold">${playerCount} Connected</span>
-      </div>
-
-      <div id="rightJoinedParticipantsList" class="space-y-2 max-h-[480px] overflow-y-auto custom-scrollbar p-1">
-        ${joinedPlayers.length === 0 ? `
-          <div class="text-center py-10 space-y-2 text-slate-500 font-mono text-xs">
-            <svg class="w-8 h-8 text-slate-600 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            <p>Waiting for participants to enter PIN ${escapeHtml(gameState.roomPin || '----')}...</p>
-          </div>
-        ` : `
-          <div class="space-y-1.5">
-            ${joinedPlayers.map((p, idx) => `
-              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between font-mono text-xs">
-                <div class="flex items-center gap-2.5 truncate">
-                  <span class="w-5 h-5 rounded-md bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 font-bold shrink-0">${idx + 1}</span>
-                  <span class="font-bold text-white truncate">${escapeHtml(p.name)}</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">${escapeHtml(p.branch || 'CSE')}</span>
-                </div>
-                <div class="flex items-center gap-2 shrink-0 ml-2">
-                  <span class="text-emerald-400 font-bold">${p.score || 0} pts</span>
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `}
-      </div>
-
-      <div class="pt-3 border-t border-slate-800 flex items-center gap-2">
-        <button id="btn-reset-room" class="w-full py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-mono text-xs font-bold cursor-pointer transition">Reset Room</button>
-      </div>
-    </div>
-  `;
-
   return `
-    <div class="app-viewport bg-[#070b14] text-slate-100 flex flex-col justify-between p-3 sm:p-4 md:p-6 safe-pad relative select-none font-sans overflow-x-hidden">
-      <div class="google-quad-bar absolute top-0 left-0"></div>
-      <header class="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800/80 mb-4 sm:mb-6 relative z-10 gap-2">
-        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <button id="btn-presenter-roles" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-slate-900 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-500/40 text-rose-400 hover:text-rose-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer transition" title="Exit Host Screen (Password required to re-enter)">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            <span>Exit Host Screen</span>
-          </button>
-          <span class="px-2.5 sm:px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs uppercase font-bold">Host Live Console</span>
-          ${gameState.roomPin ? `
-            <span class="px-2.5 sm:px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 font-mono text-xs uppercase font-bold">GAME PIN: <span class="text-cyan-300 font-black tracking-widest">${escapeHtml(gameState.roomPin)}</span></span>
-          ` : `
-            <span class="px-2.5 sm:px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-xs uppercase font-bold">NO ACTIVE ROOM</span>
-          `}
+    <div class="app-viewport bg-[#0B0F17] text-slate-100 flex flex-col justify-between p-3 sm:p-4 md:p-6 safe-pad relative select-none font-sans overflow-x-hidden">
+      <!-- Top Sticky Header -->
+      <header class="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/10 mb-4 sm:mb-6 relative z-10 gap-3">
+        <!-- Left: Inline GDGoC SVG Logo -->
+        <div class="flex items-center gap-3">
+          <svg class="w-8 h-8 shrink-0" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 14L8 32L22 50" stroke="#4285F4" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M42 14L56 32L42 50" stroke="#EA4335" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M35 12L25 52" stroke="#FBBC05" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <span class="font-extrabold text-sm sm:text-base text-white tracking-tight block">GDGoC Indo Global College</span>
+            <span class="text-[10px] text-slate-400 font-mono block">LIVE HOST AUDITORIUM CONSOLE</span>
+          </div>
         </div>
+
+        <!-- Center: Subtle LIVE HOST CONSOLE pill indicator -->
+        <div class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#4285F4]/10 border border-[#4285F4]/30 text-[#4285F4] font-mono text-xs uppercase font-bold tracking-widest">
+          <span class="w-2 h-2 rounded-full bg-[#4285F4] animate-pulse"></span>
+          <span>LIVE HOST CONSOLE</span>
+        </div>
+
+        <!-- Right: Control Actions -->
         <div class="flex items-center gap-2">
-          <button id="btn-open-qm" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono text-xs flex items-center gap-1.5 cursor-pointer">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <button id="btn-open-qm" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-mono text-xs flex items-center gap-1.5 cursor-pointer transition">
+            <svg class="w-4 h-4 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             <span class="hidden sm:inline">Questions</span> (${activeQuestions.length})
           </button>
-          <button id="btn-presenter-sound" class="p-2 rounded-xl border flex items-center justify-center ${soundEnabled ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'} cursor-pointer">
+          <button id="btn-presenter-sound" class="p-2.5 rounded-xl border flex items-center justify-center ${soundEnabled ? 'bg-[#FBBC05]/15 border-[#FBBC05]/40 text-[#FBBC05]' : 'bg-white/5 border-white/10 text-slate-500'} cursor-pointer transition" title="Toggle Stage Audio">
             ${soundEnabled ? `
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
             ` : `
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
             `}
           </button>
+          <button id="btn-presenter-roles" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-[#EA4335]/20 border border-white/10 hover:border-[#EA4335]/40 text-[#EA4335] text-xs font-mono flex items-center gap-1.5 cursor-pointer transition" title="Exit Host Screen (Password required to re-enter)">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span class="hidden sm:inline">Exit Host Screen</span>
+          </button>
         </div>
       </header>
 
-      <main class="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
-        <div class="lg:col-span-8 space-y-6">
-          ${pinDisplayBarHtml}
-          ${mainStageHtml}
-        </div>
-
-        <div class="lg:col-span-4 space-y-6">
-          ${participantsFeedHtml}
-        </div>
+      <!-- Main Stage Container -->
+      <main class="flex-1 max-w-7xl mx-auto w-full relative z-10">
+        ${heroPinBannerHtml}
+        ${mainStageHtml}
       </main>
 
-      <!-- Question Manager Modal -->
+      <!-- Question Manager Vault Modal -->
       ${showQuestionManagerModal ? `
         <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-          <div class="material-card rounded-3xl max-w-2xl w-full p-5 sm:p-8 space-y-4 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 class="text-base sm:text-lg font-bold text-white font-display">Tournament Question Vault</h3>
-              <button id="btn-close-qm" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer">
+          <div class="host-glass-card rounded-3xl max-w-2xl w-full p-5 sm:p-8 space-y-4 border border-white/15 bg-[#161F30] relative animate-scale-up modal-content custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#FBBC05]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <h3 class="text-base sm:text-lg font-bold text-white font-display">Tournament Question Vault</h3>
+              </div>
+              <button id="btn-close-qm" class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white cursor-pointer">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
             <div class="max-h-[50dvh] overflow-y-auto custom-scrollbar space-y-3 font-mono text-xs">
               ${activeQuestions.map((q, idx) => `
-                <div class="p-3.5 rounded-xl border ${idx === qIndex ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-slate-800 bg-slate-950/50'} space-y-2">
+                <div class="p-3.5 rounded-2xl border ${idx === qIndex ? 'border-[#4285F4]/50 bg-[#4285F4]/10' : 'border-white/5 bg-[#0B0F17]/60'} space-y-2">
                   <div class="flex items-center justify-between">
-                    <span class="font-bold text-cyan-400">Q${idx + 1}: ${escapeHtml(q.category)}</span>
+                    <span class="font-bold text-[#4285F4]">Q${idx + 1}: ${escapeHtml(q.category)}</span>
                     <div class="flex items-center gap-2">
                       <span class="text-[10px] text-slate-400">Correct: [${['A','B','C','D'][q.correctIndex]}]</span>
-                      <button class="btn-launch-vault-q px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold cursor-pointer" data-q-idx="${idx}">Launch Question</button>
+                      <button class="btn-launch-vault-q px-3 py-1 rounded-lg bg-[#4285F4]/20 hover:bg-[#4285F4]/30 border border-[#4285F4]/40 text-white font-mono text-[10px] font-bold cursor-pointer" data-q-idx="${idx}">Launch Question</button>
                     </div>
                   </div>
-                  <p class="text-slate-200">${escapeHtml(q.question)}</p>
+                  <p class="text-slate-200 font-sans">${escapeHtml(q.question)}</p>
                 </div>
               `).join('')}
             </div>
