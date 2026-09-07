@@ -575,10 +575,95 @@ export function listenToJoinedParticipants(gamePin = gameState.roomPin) {
   }
 }
 
+let sseEventSource = null;
+let serverPollInterval = null;
+
+export function connectServerRoom(pin = gameState.roomPin) {
+  const cleanPin = String(pin || '').trim();
+  if (!cleanPin || cleanPin === '----') return;
+
+  if (sseEventSource) {
+    try { sseEventSource.close(); } catch {}
+    sseEventSource = null;
+  }
+
+  try {
+    sseEventSource = new EventSource(`/api/rooms/${cleanPin}/stream`);
+    sseEventSource.onmessage = (e) => {
+      if (!e.data || e.data.startsWith(':')) return;
+      try {
+        const payload = JSON.parse(e.data);
+        if (payload.type === 'INITIAL_SYNC' || payload.type === 'STATE_UPDATE' || payload.type === 'ROOM_RESET') {
+          if (payload.gameState) {
+            handleStateTransition({ ...payload.gameState, roomPin: cleanPin });
+          }
+          if (payload.players) {
+            players = { ...players, ...payload.players };
+            syncCurrentPlayerReference();
+            renderParticipantListUI(Object.values(players));
+          }
+        } else if (payload.type === 'PLAYERS_UPDATE') {
+          if (payload.players) {
+            players = { ...players, ...payload.players };
+            syncCurrentPlayerReference();
+            renderParticipantListUI(Object.values(players));
+          }
+          if (payload.fastestWinner) {
+            gameState.fastestWinner = payload.fastestWinner;
+          }
+        } else if (payload.type === 'PLAYER_JOINED') {
+          if (payload.player) {
+            players[payload.player.id] = payload.player;
+            syncCurrentPlayerReference();
+            renderParticipantListUI(Object.values(players));
+          }
+        }
+      } catch {}
+    };
+    sseEventSource.onerror = () => {
+      // Background fallback polling ensures uninterrupted synchronization
+    };
+  } catch {}
+
+  // High-frequency 300ms server-sync polling fallback for rock-solid zero-loss updates
+  if (serverPollInterval) clearInterval(serverPollInterval);
+  serverPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/rooms/${cleanPin}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.gameState) {
+          const parsed = data.gameState;
+          const statusChanged = parsed.status !== gameState.status;
+          const indexChanged = typeof parsed.currentQuestionIndex === 'number' && parsed.currentQuestionIndex !== gameState.currentQuestionIndex;
+          const showAnswerChanged = Boolean(parsed.showAnswer) !== Boolean(gameState.showAnswer);
+          const timeChanged = parsed.questionStartTime && parsed.status === 'QUESTION_ACTIVE' && (!gameState.questionStartTime || Math.abs(parsed.questionStartTime - gameState.questionStartTime) > 1000);
+
+          if (statusChanged || indexChanged || showAnswerChanged || timeChanged) {
+            handleStateTransition({ ...parsed, roomPin: cleanPin });
+          }
+        }
+        if (data && data.players) {
+          const incomingCount = Object.keys(data.players).length;
+          const currentCount = Object.keys(players).length;
+          if (incomingCount !== currentCount) {
+            players = { ...players, ...data.players };
+            syncCurrentPlayerReference();
+            renderParticipantListUI(Object.values(players));
+          }
+        }
+      }
+    } catch {}
+  }, 300);
+}
+
 export function listenToRoom(pin = gameState.roomPin) {
   const cleanPin = String(pin || '').trim();
   if (!cleanPin) return;
   gameState.roomPin = cleanPin;
+
+  // 1. Connect real-time Server-Sent Events & Polling stream
+  connectServerRoom(cleanPin);
 
   // Clean up existing room subscription
   if (roomUnsubscribe) {
@@ -599,7 +684,7 @@ export function listenToRoom(pin = gameState.roomPin) {
         const data = docSnap.data();
         handleRoomSnapshot(data);
       }, (error) => {
-        console.warn("[Notice listening to room - fallback to multi-tab sync]:", error?.message || error);
+        console.warn("[Notice listening to room - fallback to server SSE sync]:", error?.message || error);
         if (error?.code === 'permission-denied' || String(error?.message || error).includes('permission')) {
           setFirebaseConnected(false);
           if (roomUnsubscribe) {
@@ -739,6 +824,9 @@ export async function createRoom(enteredPin) {
     sessionStorage.setItem('gdgoc_game_pin', pin);
     sessionStorage.setItem('activePin', pin);
   }
+
+  // Authoritative server room initialization
+  fetch(`/api/rooms/${pin}/create`, { method: 'POST' }).catch(() => {});
 
   listenToRoom(pin);
   listenToJoinedParticipants(pin);
@@ -911,6 +999,13 @@ export async function joinRoom(pin, studentData) {
     sessionStorage.setItem('gdgoc_user_branch', studentBranch);
   }
 
+  // Authoritative server player registration
+  fetch(`/api/rooms/${cleanPin}/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: userId, name: studentName, branch: studentBranch })
+  }).catch(() => {});
+
   listenToRoom(cleanPin);
 
   return { success: true, player: participantProfile };
@@ -965,10 +1060,23 @@ export function launchQuestion(index = 0) {
   handleStateTransition(gameState);
   broadcastLocalState();
 
+  // Authoritative real-time server push
+  fetch(`/api/rooms/${gamePin}/action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: 'QUESTION_ACTIVE',
+      currentQuestionIndex: index,
+      questionStartTime: Date.now(),
+      showAnswer: false,
+      fastestWinner: null
+    })
+  }).catch(() => {});
+
   if (db && isFirebaseConnected) {
     const roomRef = doc(db, 'rooms', gamePin);
     setDoc(roomRef, roomPayload, { merge: true }).catch((err) => {
-      console.warn('[Firestore] Notice during launchQuestion, operating with local broadcast:', err?.message || err);
+      console.warn('[Firestore] Notice during launchQuestion, operating with server SSE broadcast:', err?.message || err);
       if (err?.code === 'permission-denied' || String(err?.message || err).includes('permissions')) {
         setFirebaseConnected(false);
       }
@@ -1180,6 +1288,13 @@ function updateRoomDoc(partialState) {
   localStorage.setItem('gdgoc_game_state', JSON.stringify(gameState));
   broadcastLocalState();
 
+  // Authoritative server state update
+  fetch(`/api/rooms/${gamePin}/action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(partialState)
+  }).catch(() => {});
+
   if (db && isFirebaseConnected) {
     const roomRef = doc(db, 'rooms', gamePin);
     setDoc(roomRef, partialState, { merge: true }).catch((err) => {
@@ -1202,6 +1317,13 @@ function savePlayerToDB(player) {
   localStorage.setItem(`gdgoc_players_${gamePin}`, JSON.stringify(players));
   localStorage.setItem('gdgoc_players', JSON.stringify(players));
   broadcastLocalState();
+
+  // Authoritative server sync
+  fetch(`/api/rooms/${gamePin}/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(player)
+  }).catch(() => {});
 
   if (db && isFirebaseConnected) {
     // Primary path: rooms/{gamePin}/participants/{userId}
@@ -2148,6 +2270,20 @@ function handlePlayerSubmitAnswer(optionIndex) {
   currentPlayer.totalTimeTakenMs = (currentPlayer.totalTimeTakenMs || 0) + deltaMs;
   currentPlayer.lastActive = Date.now();
 
+  // Authoritative server answer recording
+  fetch(`/api/rooms/${gamePin}/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      playerId: currentPlayer.id,
+      questionIndex: qIndex,
+      selectedIndex: optionIndex,
+      deltaMs,
+      isCorrect,
+      correctIndex: currentQ.correctIndex
+    })
+  }).catch(() => {});
+
   savePlayerToDB(currentPlayer);
   renderApp();
 }
@@ -2660,5 +2796,22 @@ if (typeof window !== 'undefined') {
   window.handleStateTransition = handleStateTransition;
 }
 
-initFirestoreSync();
-renderApp();
+async function initApp() {
+  initFirestoreSync();
+  try {
+    const res = await fetch('/api/active-pin');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.activePin) {
+        const active = String(data.activePin).trim();
+        if (!gameState.roomPin || gameState.roomPin === '----') {
+          gameState.roomPin = active;
+        }
+        listenToRoom(gameState.roomPin || active);
+      }
+    }
+  } catch {}
+  renderApp();
+}
+
+initApp();
