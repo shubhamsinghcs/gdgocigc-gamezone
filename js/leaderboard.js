@@ -38,13 +38,16 @@ export function calculateBranchStats(playersObj) {
   })).sort((x, y) => parseFloat(y.avgScore) - parseFloat(x.avgScore));
 }
 
-export function renderLeaderboardHTML(playersObj) {
+export function renderLeaderboardHTML(playersObj, limit = 5, showEmojiRank = true) {
   const sorted = sortPlayers(playersObj);
   if (sorted.length === 0) {
-    return `<div class="text-center py-8 text-slate-500 font-mono text-xs italic">No active combatants in arena yet.</div>`;
+    return `<div class="text-center py-6 text-slate-500 font-mono text-xs italic">No active participants yet.</div>`;
   }
 
-  return sorted.map((p, idx) => {
+  const displayed = typeof limit === 'number' && limit > 0 ? sorted.slice(0, limit) : sorted;
+
+  return displayed.map((p, idx) => {
+    const rankNum = idx + 1;
     const rankClass = idx === 0 
       ? 'border-amber-400/60 bg-amber-950/20 text-amber-300' 
       : idx === 1 
@@ -53,13 +56,17 @@ export function renderLeaderboardHTML(playersObj) {
       ? 'border-amber-700/50 bg-amber-950/10 text-amber-500' 
       : 'border-slate-800 bg-slate-950 text-slate-300';
 
-    const rankBadge = idx === 0 ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
+    let rankBadge = `#${rankNum}`;
+    if (showEmojiRank) {
+      rankBadge = idx === 0 ? '👑 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : idx < 5 ? `🏆 #${rankNum}` : `#${rankNum}`;
+    }
+
     const avgTime = p.totalTimeTakenMs && p.answeredCount ? (p.totalTimeTakenMs / p.answeredCount / 1000).toFixed(2) + 's' : '--';
 
     return `
       <div class="p-3.5 rounded-2xl border ${rankClass} flex items-center justify-between transition-all">
         <div class="flex items-center gap-3 min-w-0">
-          <span class="w-8 h-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-950' : idx === 1 ? 'bg-slate-300 text-slate-950' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-900 text-slate-400'}">
+          <span class="min-w-[44px] h-8 px-1.5 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 whitespace-nowrap ${idx === 0 ? 'bg-amber-400 text-slate-950' : idx === 1 ? 'bg-slate-300 text-slate-950' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-900 text-slate-400'}">
             ${rankBadge}
           </span>
           <div class="truncate">

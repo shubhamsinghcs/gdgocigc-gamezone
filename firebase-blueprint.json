@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Room": {
+      "title": "Room",
+      "description": "Game room session state",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["LOBBY", "QUESTION_ACTIVE", "LEADERBOARD", "FINISHED"] },
+        "currentQuestionIndex": { "type": "number" },
+        "questionStartTime": { "type": "string" },
+        "showAnswer": { "type": "boolean" },
+        "fastestWinner": { "type": "object" },
+        "updatedAt": { "type": "number" },
+        "roomPin": { "type": "string" }
+      },
+      "required": ["status", "roomPin"]
+    },
+    "Participant": {
+      "title": "Participant",
+      "description": "Participant registered in a game room",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "branch": { "type": "string" },
+        "score": { "type": "number" },
+        "answeredCount": { "type": "number" },
+        "joinedAt": { "type": "string" }
+      },
+      "required": ["name", "branch"]
+    }
+  },
+  "firestore": {
+    "/rooms/{gamePin}": {
+      "schema": "Room",
+      "description": "Game room document"
+    },
+    "/rooms/{gamePin}/participants/{userId}": {
+      "schema": "Participant",
+      "description": "Participant document in a room"
+    }
+  }
+}
