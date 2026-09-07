@@ -2000,8 +2000,23 @@ function renderQuestionContentHTML(currentQ, qIndex, totalQuestions) {
 
 function renderPlayerGameHTML() {
   if (!currentPlayer) {
-    currentView = 'landing';
-    return renderLandingHTML();
+    const defaultId = 'player_' + Math.random().toString(36).substring(2, 9);
+    currentPlayer = {
+      id: defaultId,
+      name: 'Combatant ' + Math.floor(Math.random() * 900 + 100),
+      branch: 'CSE',
+      score: 0,
+      answeredCount: 0,
+      joinedAt: Date.now(),
+      answeredQuestions: {},
+      totalTimeTakenMs: 0,
+      fastestCount: 0,
+      lastActive: Date.now()
+    };
+    players[defaultId] = currentPlayer;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gdgoc_current_player', JSON.stringify(currentPlayer));
+    }
   }
 
   const activeQuestions = getActiveQuestions(gameState.questions);
