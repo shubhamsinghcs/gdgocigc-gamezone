@@ -90,9 +90,18 @@ app.get('/api/active-pin', (req, res) => {
   res.json({ activePin: latestActivePin });
 });
 
+app.get('/api/rooms/:pin/check', (req, res) => {
+  const pin = String(req.params.pin || '').trim();
+  const exists = Boolean(rooms[pin]);
+  res.json({ exists, active: pin === latestActivePin });
+});
+
 app.get('/api/rooms/:pin', (req, res) => {
   const pin = String(req.params.pin || '').trim();
-  const room = getOrCreateRoom(pin);
+  if (!rooms[pin]) {
+    return res.status(404).json({ error: 'Room does not exist', pin });
+  }
+  const room = rooms[pin];
   res.json({
     gameState: room.gameState,
     players: room.players
@@ -122,7 +131,7 @@ app.post('/api/rooms/:pin/create', (req, res) => {
     players: room.players
   });
 
-  res.json({ success: true, gameState: room.gameState });
+  res.json({ success: true, gameState: room.gameState, activePin: pin });
 });
 
 app.post('/api/rooms/:pin/join', (req, res) => {

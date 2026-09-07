@@ -63,7 +63,7 @@ input, select, textarea {
 }
 
 .material-card {
-  background: rgba(22, 31, 48, 0.94);
+  background: rgba(19, 27, 46, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -71,9 +71,24 @@ input, select, textarea {
 }
 
 .host-glass-card {
-  background: #161F30;
+  background: #131B2E;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.host-surface-high {
+  background: #1D263B;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.host-surface-low {
+  background: #131B2E;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @keyframes popIn {
