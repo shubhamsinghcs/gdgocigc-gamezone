@@ -1393,7 +1393,15 @@ function renderApp() {
 function renderLandingHTML() {
   const nameVal = currentPlayer?.name || '';
   const branchVal = currentPlayer?.branch || 'CSE';
-  const branches = ['CSE', 'ECE', 'IT', 'ME', 'CE', 'Other'];
+  const branches = [
+    { code: 'CSE', label: 'Computer Science & Engineering (CSE)' },
+    { code: 'IT', label: 'Information Technology (IT)' },
+    { code: 'ECE', label: 'Electronics & Communication (ECE)' },
+    { code: 'ME', label: 'Mechanical Engineering (ME)' },
+    { code: 'CE', label: 'Civil Engineering (CE)' },
+    { code: 'AIML', label: 'AI & Machine Learning (AIML)' },
+    { code: 'Other', label: 'Other Department' }
+  ];
   const playerCount = Object.keys(players).length;
 
   return `
@@ -1402,7 +1410,7 @@ function renderLandingHTML() {
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(66,133,244,0.1),transparent_60%)] pointer-events-none"></div>
 
       <!-- Top Navigation Bar -->
-      <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 pb-3 sm:pb-4 border-b border-slate-800/80 gap-1.5 sm:gap-4">
+      <header class="flex items-center justify-between w-full max-w-5xl mx-auto relative z-10 pb-3 sm:pb-4 border-b border-slate-800/80 gap-2 sm:gap-4">
         <!-- Left Side: GDG Full Logo (Pure Inline Vector SVG) -->
         <div class="flex items-center flex-1 justify-start min-w-0">
           <div class="header-logo">
@@ -1452,9 +1460,9 @@ function renderLandingHTML() {
         <div class="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
           <div class="hidden md:flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 whitespace-nowrap">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>${playerCount} Online Folks</span>
+            <span>${playerCount} Online</span>
           </div>
-          <button id="btn-host-login" class="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white font-mono text-xs font-bold flex items-center gap-1.5 sm:gap-2 cursor-pointer transition whitespace-nowrap">
+          <button id="btn-host-login" class="px-3 sm:px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-blue-500/50 text-slate-200 hover:text-white font-mono text-xs font-bold flex items-center gap-2 cursor-pointer transition shadow-sm whitespace-nowrap">
             <svg class="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             <span>Host Login</span>
           </button>
@@ -1462,42 +1470,47 @@ function renderLandingHTML() {
       </header>
 
       <!-- Center Registration Card -->
-      <main id="viewLogin" class="w-full max-w-sm sm:max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-4 my-auto relative z-10">
+      <main id="viewLogin" class="w-full max-w-sm sm:max-w-xl md:max-w-2xl mx-auto px-4 py-6 sm:py-8 my-auto relative z-10">
         <div class="material-card rounded-3xl p-6 sm:p-10 space-y-6 max-w-xl mx-auto">
-          <div class="space-y-1.5">
+          <div class="space-y-1.5 text-center sm:text-left">
             <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Participant Sign-In</h2>
             <p class="text-xs sm:text-sm text-slate-400 font-mono">Enter your details and the session PIN shared by the host</p>
           </div>
 
-          <div id="reg-error" class="hidden p-3.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2"></div>
+          <div id="reg-error" class="hidden p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2"></div>
 
           <form id="form-landing-register" class="space-y-5">
             <div>
-              <label for="input-player-name" class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 font-semibold">STUDENT FULL NAME *</label>
+              <label for="input-player-name" class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-2 font-semibold">STUDENT FULL NAME *</label>
               <input
                 id="input-player-name"
                 type="text"
                 value="${nameVal}"
                 placeholder="e.g. Rahul Sharma"
-                maxlength="28"
-                class="w-full bg-slate-950/80 border border-slate-700 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono transition"
+                maxlength="32"
+                class="w-full bg-slate-950/90 border border-slate-700/90 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-slate-500 focus:outline-none font-mono transition"
                 autocomplete="name"
                 required
               />
             </div>
 
             <div>
-              <label for="select-player-branch" class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 font-semibold">BRANCH *</label>
-              <select
-                id="select-player-branch"
-                class="w-full bg-slate-950/80 border border-slate-700 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono transition cursor-pointer"
-              >
-                ${branches.map(b => `<option value="${b}" ${b === branchVal ? 'selected' : ''}>${b}</option>`).join('')}
-              </select>
+              <label for="select-player-branch" class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-2 font-semibold">DEPARTMENT / BRANCH *</label>
+              <div class="relative">
+                <select
+                  id="select-player-branch"
+                  class="w-full bg-slate-950/90 border border-slate-700/90 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono transition cursor-pointer appearance-none"
+                >
+                  ${branches.map(b => `<option value="${b.code}" ${b.code === branchVal ? 'selected' : ''}>${b.label}</option>`).join('')}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              </div>
             </div>
 
             <div>
-              <label for="input-game-pin" class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 font-semibold">GAME PIN CODE *</label>
+              <label for="input-game-pin" class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-2 font-semibold">GAME PIN CODE *</label>
               <input
                 id="input-game-pin"
                 type="text"
@@ -1506,7 +1519,7 @@ function renderLandingHTML() {
                 maxlength="6"
                 inputmode="numeric"
                 pattern="[0-9]*"
-                class="w-full bg-slate-950/80 border border-slate-700 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono transition tracking-widest font-bold text-lg"
+                class="w-full bg-slate-950/90 border border-slate-700/90 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-white placeholder:text-slate-500 focus:outline-none font-mono transition tracking-widest font-bold text-lg"
                 autocomplete="off"
                 required
               />
@@ -1516,7 +1529,7 @@ function renderLandingHTML() {
             <button
               type="submit"
               id="btn-submit-register"
-              class="w-full py-4 px-6 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] active:bg-[#2A56C6] text-white font-bold font-mono tracking-wider uppercase transition shadow-lg shadow-blue-500/25 text-sm flex items-center justify-center gap-2 mt-2 cursor-pointer"
+              class="w-full py-4 px-6 rounded-2xl bg-[#4285F4] hover:bg-[#3367D6] active:bg-[#2A56C6] disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-700 text-white font-bold font-mono tracking-wider uppercase transition shadow-lg shadow-blue-500/25 disabled:shadow-none text-sm flex items-center justify-center gap-2 mt-3 cursor-pointer"
             >
               <span id="btn-submit-label">ENTER THE GAME ZONE</span>
               <svg id="btn-submit-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -1531,14 +1544,14 @@ function renderLandingHTML() {
 
       <!-- Rules Modal -->
       ${showRulesModal ? `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div id="modal-rules-backdrop" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div class="material-card rounded-3xl max-w-lg w-full p-5 sm:p-8 space-y-4 sm:space-y-5 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#4285F4]"></span>
                 <h3 class="text-base sm:text-lg font-bold text-white font-display">Competition Rules</h3>
               </div>
-              <button id="btn-close-rules" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">
+              <button id="btn-close-rules" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
@@ -1583,48 +1596,54 @@ function renderLandingHTML() {
 
       <!-- Host Login Authentication Modal -->
       ${showHostLoginModal ? `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-          <div class="material-card rounded-3xl max-w-md w-full p-5 sm:p-8 space-y-4 sm:space-y-5 border border-slate-700 relative animate-scale-up modal-content custom-scrollbar">
+        <div id="modal-host-backdrop" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div class="material-card rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 border border-slate-700/80 relative animate-scale-up modal-content custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
-                <h3 class="text-lg font-bold text-white font-display">Host Authentication</h3>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+                <div>
+                  <h3 class="text-base sm:text-lg font-bold text-white font-display">Host Authentication</h3>
+                  <p class="text-[11px] text-slate-400 font-mono">Enter host password to access console</p>
+                </div>
               </div>
-              <button id="btn-close-host-login" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">
+              <button id="btn-close-host-login" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white cursor-pointer transition">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
 
             ${hostLoginError ? `
-              <div class="p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-xs font-mono">
-                ${escapeHtml(hostLoginError)}
+              <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs font-mono flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>${escapeHtml(hostLoginError)}</span>
               </div>
             ` : ''}
 
             <form id="form-host-auth" class="space-y-4">
               <div>
-                <label for="input-host-password" class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 font-semibold">Enter Host Password *</label>
+                <label for="input-host-password" class="block text-xs font-mono text-slate-300 uppercase tracking-wider mb-2 font-semibold">Host Password *</label>
                 <input
                   id="input-host-password"
                   type="password"
                   placeholder="Enter administrator password"
-                  class="w-full bg-slate-950/80 border border-slate-700 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono transition"
+                  class="w-full bg-slate-950/90 border border-slate-700/90 focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-slate-500 focus:outline-none font-mono transition"
                   autofocus
                   required
                 />
               </div>
 
-              <div class="flex items-center gap-2 pt-2">
+              <div class="flex items-center gap-2.5 pt-2">
                 <button
                   type="button"
                   id="btn-cancel-host-login"
-                  class="w-1/2 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono text-xs font-bold cursor-pointer"
+                  class="w-1/2 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-mono text-xs font-bold cursor-pointer transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  class="w-1/2 py-3 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-mono text-xs font-bold cursor-pointer shadow-lg shadow-blue-500/25"
+                  class="w-1/2 py-3.5 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] active:bg-[#2A56C6] text-white font-mono text-xs font-bold cursor-pointer transition shadow-lg shadow-blue-500/25"
                 >
                   Verify & Enter
                 </button>
@@ -1643,6 +1662,9 @@ function bindLandingEvents() {
     hostLoginError = '';
     showHostLoginModal = true;
     renderApp();
+    setTimeout(() => {
+      document.getElementById('input-host-password')?.focus();
+    }, 50);
   });
 
   document.getElementById('btn-close-host-login')?.addEventListener('click', () => {
@@ -1653,6 +1675,22 @@ function bindLandingEvents() {
   document.getElementById('btn-cancel-host-login')?.addEventListener('click', () => {
     showHostLoginModal = false;
     renderApp();
+  });
+
+  // Close host modal on backdrop click
+  document.getElementById('modal-host-backdrop')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-host-backdrop') {
+      showHostLoginModal = false;
+      renderApp();
+    }
+  });
+
+  // Close rules modal on backdrop click
+  document.getElementById('modal-rules-backdrop')?.addEventListener('click', (e) => {
+    if (e.target.id === 'modal-rules-backdrop') {
+      showRulesModal = false;
+      renderApp();
+    }
   });
 
   document.getElementById('form-host-auth')?.addEventListener('submit', async (e) => {
@@ -1674,6 +1712,9 @@ function bindLandingEvents() {
     } else {
       hostLoginError = 'Invalid host password. Access denied.';
       renderApp();
+      setTimeout(() => {
+        document.getElementById('input-host-password')?.focus();
+      }, 50);
     }
   });
 
